@@ -54,9 +54,10 @@ void displayUpdate (char *str1, char *str2, int16_t num, uint8_t charLine)
 
     // "Undraw" the previous contents of the line to be updated.
     OLEDStringDraw ("                ", 0, charLine);
+
     // Form a new string for the line.  The maximum width specified for the
     //  number field ensures it is displayed right justified.
-    usnprintf(text_buffer, sizeof(text_buffer), "%s %s %3d", str1, str2, num);
+    usnprintf(text_buffer, sizeof(text_buffer), "%s %s %3d mg", str1, str2, num);
     // Update line on display.
     OLEDStringDraw (text_buffer, 0, charLine);
 }
@@ -77,6 +78,7 @@ int main()
 
 
         accl_data = getAcclData();
+        accl_data = adjustData(accl_data);
 
         displayUpdate("Accl", "X", accl_data.x, 1);
         displayUpdate("Accl", "Y", accl_data.y, 2);
