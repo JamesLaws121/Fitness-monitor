@@ -8,8 +8,29 @@ acc.c
  written by C.P. Moore
  https://learn.canterbury.ac.nz/pluginfile.php/4291802/mod_folder/content/0/Week_3_lab_code.zip
 ========================================================*/
-void
-initAccl (void)
+
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdlib.h>
+
+
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "inc/hw_i2c.h"
+#include "driverlib/pin_map.h" //Needed for pin configure
+#include "driverlib/systick.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/gpio.h"
+#include "driverlib/i2c.h"
+#include "../OrbitOLED/OrbitOLEDInterface.h"
+#include "utils/ustdlib.h"
+#include "acc.h"
+#include "i2c_driver.h"
+
+
+
+void initAccl (void)
 {
     char    toAccl[] = {0, 0};  // parameter, value
 
@@ -72,8 +93,7 @@ initAccl (void)
 /*======================================================
  Function to read accelerometer
  =======================================================*/
-vector3_t
-getAcclData (void)
+vector3_t getAcclData (void)
 {
     char    fromAccl[] = {0, 0, 0, 0, 0, 0, 0}; // starting address, placeholders for data to be read.
     vector3_t acceleration;

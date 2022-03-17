@@ -12,15 +12,17 @@
  ========================================================/
 
 // Defines a 3 space vector
+ */
+
 typedef struct{
     int16_t x;
     int16_t y;
     int16_t z;
 } vector3_t;
 
-/*
- * Accl Interrupt Pins
- */
+
+//Accl Interrupt Pins
+
 #define ACCL_INT1Port       GPIO_PORTB_BASE
 #define ACCL_INT2Port       GPIO_PORTE_BASE
 #define ACCL_INT1           GPIO_PIN_4
@@ -70,10 +72,10 @@ typedef struct{
 
 
 // Initialization function for accelerometer
-void initAccl (void);
+void initAccl(void);
 
 // Returns acceleromter data as a 3 space vector
-vector3_t getAcclData (void);
+vector3_t getAcclData(void);
 
 #endif /*ACC_H_*/
 
