@@ -24,8 +24,19 @@
 #include "../OrbitOLED/OrbitOLEDInterface.h"
 #include "utils/ustdlib.h"
 
+#include "inc/hw_ints.h"
+#include "driverlib/adc.h"
+
+#include "driverlib/debug.h"
+
+#include "utils/ustdlib.h"
+
+
+#include "stdlib.h"
+
 #include "acc.h"
 #include "i2c_driver.h"
+#include  "buttons4.h"
 
 
 /*
@@ -48,18 +59,24 @@ void initDisplay(void)
     OLEDInitialise();
 }
 
-void displayUpdate (char *str1, char *str2, int16_t num, uint8_t charLine)
+void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine,char *unit)
 {
     char text_buffer[17];           //Display fits 16 characters wide.
 
     // "Undraw" the previous contents of the line to be updated.
-    OLEDStringDraw ("                ", 0, charLine);
+    OLEDStringDraw("                ", 0, charLine);
 
     // Form a new string for the line.  The maximum width specified for the
     //  number field ensures it is displayed right justified.
-    usnprintf(text_buffer, sizeof(text_buffer), "%s %s %3d mg", str1, str2, num);
+    usnprintf(text_buffer, sizeof(text_buffer), "%s %s %3d %s", str1, str2, num,unit);
     // Update line on display.
-    OLEDStringDraw (text_buffer, 0, charLine);
+    OLEDStringDraw(text_buffer, 0, charLine);
+}
+
+char* changeUnits(int8_t* current_state,char* unit){
+    displayUpdate("Blaaa", "X", 6, 1,unit);
+    *current_state = 1+ (*current_state)%2;
+    return "mg";
 }
 
 int main()
@@ -69,6 +86,10 @@ int main()
     initClock();
     initAccl();
     initDisplay();
+    initButtons();
+
+    int8_t current_state = 0;
+    char* unit = "Raw";
 
     OLEDStringDraw("Acceleration", 0, 0);
 
@@ -78,10 +99,28 @@ int main()
 
 
         accl_data = getAcclData();
-        accl_data = adjustData(accl_data);
 
-        displayUpdate("Accl", "X", accl_data.x, 1);
-        displayUpdate("Accl", "Y", accl_data.y, 2);
-        displayUpdate("Accl", "Z", accl_data.z, 3);
+        //Check Up button
+
+        updateButtons();
+
+        uint8_t butState;
+        butState = checkButton(UP);
+        switch(butState)
+        {
+        case PUSHED:
+            unit = changeUnits(&current_state,unit);
+            accl_data = adjustData(accl_data,current_state);
+            break;
+        case RELEASED:
+            break;
+        }
+
+
+
+
+        displayUpdate("Accl", "X", accl_data.x, 1,unit);
+        displayUpdate("Accl", "Y", accl_data.y, 2,unit);
+        displayUpdate("Accl", "Z", accl_data.z, 3,unit);
     }
 }
