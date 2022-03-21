@@ -38,6 +38,8 @@
 #include "i2c_driver.h"
 #include "buttons4.h"
 
+#define DISPLAY_TICK
+
 
 
 void initClock (void)
@@ -66,30 +68,15 @@ void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char s
     OLEDStringDraw(text_buffer, 0, charLine);
 }
 
-//=====================================================================
-// Takes raw acceleration data and returns acceleration in
-//  raw data, multiples of Gs, or metres per second per second.
-//  unit: 0=raw, 1=Gs, 2=m/s/s
-//=====================================================================
-vector3_t changeUnits(vector3_t accl_raw, uint8_t unit){
-    vector3_t accl_out;
 
-    switch (unit) {
-    case 0:
-        accl_out = accl_raw;
-        break;
-    case 1:
-        // TODO: convert to Gs
-        break;
-    case 2:
-        // TODO: convert to m/s/s
-        break;
-    default:
-        accl_out.x = 0;
-        accl_out.y = 0;
-        accl_out.z = 0;
+char* changeUnits(int8_t* current_state,char* unit){
+    *current_state = 1 + (*current_state)%2;
+
+    if(*current_state == 1){
+        return "mg";
     }
-    return accl_out;
+    return "m/s";
+
 }
 
 
@@ -113,39 +100,32 @@ int main()
 
     while (1)
     {
-        SysCtlDelay(SysCtlClockGet () / 6);
+        SysCtlDelay(SysCtlClockGet () / 150);
 
         accl_data_raw = getAcclData();
 
-        //check for button presses
+        accl_data = getAcclData();
+        unit = changeUnits(&current_state,unit);
+
+        //Check Up button
+
         updateButtons();
 
         switch(checkButton(UP))
         {
         case PUSHED:
-            accl_unit ++;
-            if (accl_unit >= 3) {accl_unit = 0;}
+            accl_data = adjustData(accl_data,current_state);
+            unit = changeUnits(&current_state,unit);
+
+            //OLEDStringDraw("hello", 0, 1);
             break;
         default:
             break;
         }
 
-        //display acceleration on screen
-        accl_data = changeUnits(accl_data_raw, accl_unit);
-        switch (accl_unit) {
-        case 1:
-            *unit_str = *"g";
-            break;
-        case 2:
-            *unit_str = *"m/s/s";
-            break;
-        default:
-            *unit_str = *"test";
-            break;
-        }
-        // FIXME: unit string does not display correctly
-        displayUpdate("Accl", "X", accl_data.x, 1, unit_str);
-        displayUpdate("Accl", "Y", accl_data.y, 2, unit_str);
-        displayUpdate("Accl", "Z", accl_data.z, 3, unit_str);
+
+        displayUpdate("Accl", "X", accl_data.x, 1,unit);
+        displayUpdate("Accl", "Y", accl_data.y, 2,unit);
+        displayUpdate("Accl", "Z", accl_data.z, 3,unit);
     }
 }
