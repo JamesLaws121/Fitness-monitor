@@ -79,6 +79,9 @@ vector3_t getAcclData(void);
 // Converts acceleration data to different units
 vector3_t convert(vector3_t accl_raw, uint8_t unit);
 
+// Returns a string representing the unit
+char* getAcclUnitStr(int8_t unit_num);
+
 #endif /*ACC_H_*/
 
 

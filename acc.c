@@ -135,3 +135,19 @@ vector3_t convert(vector3_t accl_raw, uint8_t unit)
     }
     return accl_out;
 }
+
+//====================================================================
+// Returns a string representing the given unit
+// 0=raw(no unit), 1=mGs, 2=m/s/s.
+//====================================================================
+char* getAcclUnitStr(int8_t unit_num){
+
+    switch (unit_num){
+    case 1:
+        return "mG";
+    case 2:
+        return "m/s/s";
+    default:
+        return "";
+    }
+}

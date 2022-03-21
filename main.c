@@ -70,26 +70,11 @@ void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char *
 
 
 
-// Returns a string representing the given unit
-// 0=raw(no unit), 1=mGs, 2=m/s/s.
-char* getUnitStr(int8_t unit_num){
-
-    switch (unit_num){
-    case 1:
-        return "mG";
-    case 2:
-        return "m/s/s";
-    default:
-        return "";
-    }
-}
-
-
 // Main
 int main()
 {
     vector3_t accl_data;
-    uint8_t   unit = 0;
+    uint8_t   accl_unit = 0;
 
     initClock();
     initAccl();
@@ -111,16 +96,17 @@ int main()
         switch(checkButton(UP))
         {
         case PUSHED:
-            unit++;
-            if (unit >= 3) {unit = 0;}
+            accl_unit++;
+            if (accl_unit >= 3) {accl_unit = 0;}
             break;
         default:
             break;
         }
 
-        accl_data = convert(accl_data, unit);
-        displayUpdate("Accl", "X", accl_data.x, 1,getUnitStr(unit));
-        displayUpdate("Accl", "Y", accl_data.y, 2,getUnitStr(unit));
-        displayUpdate("Accl", "Z", accl_data.z, 3,getUnitStr(unit));
+        // Display acceleration
+        accl_data = convert(accl_data, accl_unit);
+        displayUpdate("Accl", "X", accl_data.x, 1, getAcclUnitStr(accl_unit));
+        displayUpdate("Accl", "Y", accl_data.y, 2, getAcclUnitStr(accl_unit));
+        displayUpdate("Accl", "Z", accl_data.z, 3, getAcclUnitStr(accl_unit));
     }
 }
