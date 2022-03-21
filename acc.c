@@ -111,7 +111,7 @@ vector3_t getAcclData (void)
 
     //=====================================================================
     // Takes raw acceleration data and returns acceleration in
-    //  raw data, multiples of Gs, or metres per second per second.
+    //  raw data, milli Gs, or metres per second per second.
     //  unit: 0=raw, 1=Gs, 2=m/s/s
     //=====================================================================
     vector3_t convert(vector3_t accl_raw, uint8_t unit){
@@ -125,31 +125,30 @@ vector3_t getAcclData (void)
 
                 break;
         case 1:
-            // TODO: convert to Gs
             // raw --> milli g
-            acceleration.x *= 100;
-            acceleration.y *= 100;
-            acceleration.z *= 100;
+            accl_out.x = accl_raw.x * 100;
+            accl_out.y = accl_raw.y * 100;
+            accl_out.z = accl_raw.z * 100;
 
-            acceleration.x /= 256;
-            acceleration.y /= 256;
-            acceleration.z /= 256;
+            accl_out.x = accl_out.x / 256;
+            accl_out.y = accl_out.y / 256;
+            accl_out.z = accl_out.z / 256;
 
-            acceleration.x *= 10;
-            acceleration.y *= 10;
-            acceleration.z *= 10;
+            accl_out.x = accl_out.x * 10;
+            accl_out.y = accl_out.y * 10;
+            accl_out.z = accl_out.z * 10;
             break;
         case 2:
             // raw --> ms^-1
 
-            acceleration.x *= 9.81;
-            acceleration.y *= 9.81;
-            acceleration.z *= 9.81;
+            accl_out.x = accl_raw.x * 9.81;
+            accl_out.y = accl_raw.y * 9.81;
+            accl_out.z = accl_raw.z * 9.81;
 
 
-            acceleration.x /= 256;
-            acceleration.y /= 256;
-            acceleration.z /= 256;
+            accl_out.x = accl_out.x / 256;
+            accl_out.y = accl_out.y / 256;
+            accl_out.z = accl_out.z / 256;
 
 
 
