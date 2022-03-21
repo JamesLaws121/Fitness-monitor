@@ -86,9 +86,13 @@ int main()
 
     while (1)
     {
-        SysCtlDelay(SysCtlClockGet () / 8);
+        SysCtlDelay(SysCtlClockGet () / 150);
 
-        accl_data = getAcclData();
+        accl_data_raw = getAcclData();
+        accl_data = convert(accl_data,current_state);
+
+        ///accl_data = getAcclData();
+        //unit = changeUnits(&current_state,unit);
 
         //Check Up button
         updateButtons();
