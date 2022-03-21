@@ -109,21 +109,19 @@ vector3_t getAcclData (void)
 
 
 
-    //=====================================================================
-    // Takes raw acceleration data and returns acceleration in
-    //  raw data, milli Gs, or metres per second per second.
-    //  unit: 0=raw, 1=Gs, 2=m/s/s
-    //=====================================================================
-    vector3_t convert(vector3_t accl_raw, uint8_t unit){
-        vector3_t accl_out;
+//=====================================================================
+// Takes raw acceleration data and returns acceleration in
+//  raw data, milli Gs, or metres per second per second.
+//  unit: 0=raw, 1=Gs, 2=m/s/s
+//=====================================================================
+vector3_t convert(vector3_t accl_raw, uint8_t unit){
+    vector3_t accl_out;
 
-
-        switch (unit) {
-            case 0:
-                //Raw
-                accl_out = accl_raw;
-
-                break;
+    switch (unit) {
+        case 0:
+            //Raw
+            accl_out = accl_raw;
+            break;
         case 1:
             // raw --> milli g
             accl_out.x = accl_raw.x * 100;
@@ -158,7 +156,7 @@ vector3_t getAcclData (void)
             accl_out.y = 0;
             accl_out.z = 0;
         }
-        return accl_out;
+    return accl_out;
 }
 
 
@@ -179,3 +177,8 @@ char* getAcclUnitStr(int8_t unit_num){
         return "";
     }
 }
+/*
+vector3_t getOrientation(vector3_t accl_raw, uint8_t unit){
+
+}
+*/
