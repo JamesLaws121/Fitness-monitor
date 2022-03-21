@@ -7,12 +7,11 @@
  Support for interfacing with the ADXL345 accelerometer
  on the Orbit BoosterPack.
 
- C.P. Moore, D Beukenholdt, J Laws
+ C.P. Moore, D. Beukenholdt, J. Laws
  Last modified:  17/03/2022
- ========================================================/
+ ========================================================*/
 
 // Defines a 3 space vector
- */
 
 typedef struct{
     int16_t x;

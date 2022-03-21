@@ -3,8 +3,8 @@
  * main.c
  *
  * Milestone 1 code which displays acceleration and orientation
- *
- *    18 Mar 2022
+ * D. Beukenholdt, J. Laws
+ * Last modified: 21 Mar 2022
  *
  **********************************************************/
 
@@ -15,6 +15,7 @@
 
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
+#include "inc/hw_ints.h"
 #include "inc/hw_i2c.h"
 #include "driverlib/pin_map.h" //Needed for pin configure
 #include "driverlib/systick.h"
@@ -31,21 +32,13 @@
 
 #include "utils/ustdlib.h"
 
-
 #include "stdlib.h"
 
 #include "acc.h"
 #include "i2c_driver.h"
-#include  "buttons4.h"
+#include "buttons4.h"
 
 
-/*
-typedef struct {
-    int x;
-    int y;
-    int z;
-}vector3_t;
-*/
 
 void initClock (void)
 {
@@ -54,42 +47,67 @@ void initClock (void)
                    SYSCTL_XTAL_16MHZ);
 }
 
+
 void initDisplay(void)
 {
     OLEDInitialise();
 }
 
-void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine,char *unit)
+
+void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char str3[])
 {
     char text_buffer[17];           //Display fits 16 characters wide.
 
-    // "Undraw" the previous contents of the line to be updated.
+    // Clear the line to be updated.
     OLEDStringDraw("                ", 0, charLine);
 
-    // Form a new string for the line.  The maximum width specified for the
-    //  number field ensures it is displayed right justified.
-    usnprintf(text_buffer, sizeof(text_buffer), "%s %s %3d %s", str1, str2, num,unit);
-    // Update line on display.
+    // Draw a new string to the display.
+    usnprintf(text_buffer, sizeof(text_buffer), "%s %s %3d %s", str1, str2, num, str3);
     OLEDStringDraw(text_buffer, 0, charLine);
 }
 
-char* changeUnits(int8_t* current_state,char* unit){
-    displayUpdate("Blaaa", "X", 6, 1,unit);
-    *current_state = 1+ (*current_state)%2;
-    return "mg";
+//=====================================================================
+// Takes raw acceleration data and returns acceleration in
+//  raw data, multiples of Gs, or metres per second per second.
+//  unit: 0=raw, 1=Gs, 2=m/s/s
+//=====================================================================
+vector3_t changeUnits(vector3_t accl_raw, uint8_t unit){
+    vector3_t accl_out;
+
+    switch (unit) {
+    case 0:
+        accl_out = accl_raw;
+        break;
+    case 1:
+        // TODO: convert to Gs
+        break;
+    case 2:
+        // TODO: convert to m/s/s
+        break;
+    default:
+        accl_out.x = 0;
+        accl_out.y = 0;
+        accl_out.z = 0;
+    }
+    return accl_out;
 }
 
+
+// Main
 int main()
 {
     vector3_t accl_data;
+    vector3_t accl_data_raw;
+    uint8_t   accl_unit = 0;
+    char unit_str[8];
+
 
     initClock();
     initAccl();
     initDisplay();
     initButtons();
 
-    int8_t current_state = 0;
-    char* unit = "Raw";
+
 
     OLEDStringDraw("Acceleration", 0, 0);
 
@@ -97,30 +115,37 @@ int main()
     {
         SysCtlDelay(SysCtlClockGet () / 6);
 
+        accl_data_raw = getAcclData();
 
-        accl_data = getAcclData();
-
-        //Check Up button
-
+        //check for button presses
         updateButtons();
 
-        uint8_t butState;
-        butState = checkButton(UP);
-        switch(butState)
+        switch(checkButton(UP))
         {
         case PUSHED:
-            unit = changeUnits(&current_state,unit);
-            accl_data = adjustData(accl_data,current_state);
+            accl_unit ++;
+            if (accl_unit >= 3) {accl_unit = 0;}
             break;
-        case RELEASED:
+        default:
             break;
         }
 
-
-
-
-        displayUpdate("Accl", "X", accl_data.x, 1,unit);
-        displayUpdate("Accl", "Y", accl_data.y, 2,unit);
-        displayUpdate("Accl", "Z", accl_data.z, 3,unit);
+        //display acceleration on screen
+        accl_data = changeUnits(accl_data_raw, accl_unit);
+        switch (accl_unit) {
+        case 1:
+            *unit_str = *"g";
+            break;
+        case 2:
+            *unit_str = *"m/s/s";
+            break;
+        default:
+            *unit_str = *"test";
+            break;
+        }
+        // FIXME: unit string does not display correctly
+        displayUpdate("Accl", "X", accl_data.x, 1, unit_str);
+        displayUpdate("Accl", "Y", accl_data.y, 2, unit_str);
+        displayUpdate("Accl", "Z", accl_data.z, 3, unit_str);
     }
 }

@@ -90,9 +90,9 @@ void initAccl (void)
     I2CGenTransmit(toAccl, 1, WRITE, ACCL_ADDR);
 }
 
-/*======================================================
- Function to read accelerometer
- =======================================================*/
+//======================================================
+// Function to read accelerometer
+//======================================================
 vector3_t getAcclData (void)
 {
     char    fromAccl[] = {0, 0, 0, 0, 0, 0, 0}; // starting address, placeholders for data to be read.
