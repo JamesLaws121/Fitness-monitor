@@ -108,6 +108,7 @@ vector3_t getAcclData (void)
     acceleration.z = ((fromAccl[6] << 8) | fromAccl[5]);
 
     return acceleration;
+}
 
 
 
@@ -148,7 +149,7 @@ vector3_t getAcclData (void)
             acceleration.y *= 9.81;
             acceleration.z *= 9.81;
 
-            
+
             acceleration.x /= 256;
             acceleration.y /= 256;
             acceleration.z /= 256;

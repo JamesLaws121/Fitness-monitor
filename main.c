@@ -56,7 +56,7 @@ void initDisplay(void)
 }
 
 
-void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char str3[])
+void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char *str3)
 {
     char text_buffer[17];           //Display fits 16 characters wide.
 
@@ -69,14 +69,19 @@ void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char s
 }
 
 
-char* changeUnits(int8_t* current_state,char* unit){
-    *current_state = 1 + (*current_state)%2;
 
-    if(*current_state == 1){
-        return "mg";
+// Returns a string representing the given unit
+// 0=raw(no unit), 1=mGs, 2=m/s/s.
+char* getUnitStr(int8_t unit_num){
+
+    switch (unit_num){
+    case 1:
+        return "mG";
+    case 2:
+        return "m/s/s";
+    default:
+        return "";
     }
-    return "m/s";
-
 }
 
 
@@ -84,16 +89,12 @@ char* changeUnits(int8_t* current_state,char* unit){
 int main()
 {
     vector3_t accl_data;
-    vector3_t accl_data_raw;
-    uint8_t   accl_unit = 0;
-    char unit_str[8];
-
+    uint8_t   unit = 0;
 
     initClock();
     initAccl();
     initDisplay();
     initButtons();
-
 
 
     OLEDStringDraw("Acceleration", 0, 0);
@@ -109,22 +110,21 @@ int main()
         //unit = changeUnits(&current_state,unit);
 
         //Check Up button
-
         updateButtons();
 
         switch(checkButton(UP))
         {
         case PUSHED:
-            unit = changeUnits(&current_state,unit);
-            //OLEDStringDraw("hello", 0, 1);
+            unit++;
+            if (unit >= 3) {unit = 0;}
             break;
         default:
             break;
         }
 
-
-        displayUpdate("Accl", "X", accl_data.x, 1,unit);
-        displayUpdate("Accl", "Y", accl_data.y, 2,unit);
-        displayUpdate("Accl", "Z", accl_data.z, 3,unit);
+        accl_data = convert(accl_data, unit);
+        displayUpdate("Accl", "X", accl_data.x, 1,getUnitStr(unit));
+        displayUpdate("Accl", "Y", accl_data.y, 2,getUnitStr(unit));
+        displayUpdate("Accl", "Z", accl_data.z, 3,getUnitStr(unit));
     }
 }
