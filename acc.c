@@ -107,4 +107,31 @@ vector3_t getAcclData (void)
     acceleration.z = ((fromAccl[6] << 8) | fromAccl[5]);
 
     return acceleration;
+
+
+
+    //=====================================================================
+    // Takes raw acceleration data and returns acceleration in
+    //  raw data, multiples of Gs, or metres per second per second.
+    //  unit: 0=raw, 1=Gs, 2=m/s/s
+    //=====================================================================
+    vector3_t convert(vector3_t accl_raw, uint8_t unit){
+        vector3_t accl_out;
+
+        switch (unit) {
+        case 0:
+            accl_out = accl_raw;
+            break;
+        case 1:
+            // TODO: convert to Gs
+            break;
+        case 2:
+            // TODO: convert to m/s/s
+            break;
+        default:
+            accl_out.x = 0;
+            accl_out.y = 0;
+            accl_out.z = 0;
+        }
+        return accl_out;
 }

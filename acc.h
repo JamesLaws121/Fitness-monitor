@@ -76,6 +76,9 @@ void initAccl(void);
 // Returns acceleromter data as a 3 space vector
 vector3_t getAcclData(void);
 
+// Converts acceleration data to different units
+vector3_t convert(vector3_t accl_raw, uint8_t unit);
+
 #endif /*ACC_H_*/
 
 
