@@ -1,15 +1,8 @@
 /*======================================================
-acc.c
+ acc.c
+ C.P. Moore, D. Beukenholdt, J. Laws
 ========================================================*/
 
-/*======================================================
- initAccl
- Initializes accelerometer
- written by C.P. Moore
- https://learn.canterbury.ac.nz/pluginfile.php/4291802/mod_folder/content/0/Week_3_lab_code.zip
-========================================================*/
-
-//edited by J Laws
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -30,7 +23,11 @@ acc.c
 #include "i2c_driver.h"
 
 
-
+/*======================================================
+ Initializes accelerometer
+ written by C.P. Moore
+ https://learn.canterbury.ac.nz/pluginfile.php/4291802/mod_folder/content/0/Week_3_lab_code.zip
+========================================================*/
 void initAccl (void)
 {
     char    toAccl[] = {0, 0};  // parameter, value
@@ -167,21 +164,6 @@ vector3_t getAcclData (void)
 
 
 
-
-vector3_t adjustData(vector3_t acceleration,int8_t current_state)
-{
-    if(current_state == 0){
-
-    } else if(current_state == 1){
-
-    } else if(current_state == 2){
-
-    }
-
-
-
-    return acceleration;
-}
 
 //====================================================================
 // Returns a string representing the given unit
