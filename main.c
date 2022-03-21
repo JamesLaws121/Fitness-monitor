@@ -38,6 +38,8 @@
 #include "i2c_driver.h"
 #include  "buttons4.h"
 
+#define DISPLAY_TICK
+
 
 /*
 typedef struct {
@@ -74,9 +76,12 @@ void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine,char *u
 }
 
 char* changeUnits(int8_t* current_state,char* unit){
-    displayUpdate("Blaaa", "X", 6, 1,unit);
-    *current_state = 1+ (*current_state)%2;
-    return "mg";
+    *current_state = 1 + (*current_state)%2;
+
+    if(*current_state == 1){
+        return "mg";
+    }
+    return "m/s";
 }
 
 int main()
@@ -95,10 +100,11 @@ int main()
 
     while (1)
     {
-        SysCtlDelay(SysCtlClockGet () / 6);
+        SysCtlDelay(SysCtlClockGet () / 150);
 
 
         accl_data = getAcclData();
+        unit = changeUnits(&current_state,unit);
 
         //Check Up button
 
@@ -109,14 +115,14 @@ int main()
         switch(butState)
         {
         case PUSHED:
-            unit = changeUnits(&current_state,unit);
             accl_data = adjustData(accl_data,current_state);
+            unit = changeUnits(&current_state,unit);
+
+            //OLEDStringDraw("hello", 0, 1);
             break;
         case RELEASED:
             break;
         }
-
-
 
 
         displayUpdate("Accl", "X", accl_data.x, 1,unit);
