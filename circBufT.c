@@ -12,19 +12,20 @@
 #include <stdint.h>
 #include "stdlib.h"
 #include "circBufT.h"
-#include "acc.h"
 
 // *******************************************************
 // initCircBuf: Initialise the circBuf instance. Reset both indices to
 // the start of the buffer.  Dynamically allocate and clear the the 
 // memory and return a pointer for the data.  Return NULL if 
 // allocation fails.
-vector3_t * initCircBuf (circBuf_t *buffer, uint32_t size)
+uint32_t *
+initCircBuf (circBuf_t *buffer, uint32_t size)
 {
 	buffer->windex = 0;
 	buffer->rindex = 0;
 	buffer->size = size;
-	buffer->data =  (vector3_t *) calloc (size, sizeof(vector3_t));
+	buffer->data = 
+        (uint32_t *) calloc (size, sizeof(uint32_t));
 	return buffer->data;
 }
    // Note use of calloc() to clear contents.
@@ -32,7 +33,8 @@ vector3_t * initCircBuf (circBuf_t *buffer, uint32_t size)
 // *******************************************************
 // writeCircBuf: insert entry at the current windex location,
 // advance windex, modulo (buffer size).
-void writeCircBuf (circBuf_t *buffer, vector3_t entry)
+void
+writeCircBuf (circBuf_t *buffer, uint32_t entry)
 {
 	buffer->data[buffer->windex] = entry;
 	buffer->windex++;
@@ -44,9 +46,10 @@ void writeCircBuf (circBuf_t *buffer, vector3_t entry)
 // readCircBuf: return entry at the current rindex location,
 // advance rindex, modulo (buffer size). The function deos not check
 // if reading has advanced ahead of writing.
-vector3_t readCircBuf (circBuf_t *buffer)
+uint32_t
+readCircBuf (circBuf_t *buffer)
 {
-    vector3_t entry;
+	uint32_t entry;
 	
 	entry = buffer->data[buffer->rindex];
 	buffer->rindex++;

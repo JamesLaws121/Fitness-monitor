@@ -71,77 +71,20 @@ void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char *
 }
 
 
-vector3_t sumData(vector3_t currentAverage,uint32_t BUFF_SIZE,circBuf_t* buffer){
+uint64_t sumData(uint32_t BUFF_SIZE,circBuf_t* buffer){
 
-    /*
-    if(currentAverage.x < 0){
-        currentAverage.x *=-1;
-    }
-    currentAverage.x = ((currentAverage.x * BUFF_SIZE) - oldValue.x);
-    currentAverage.x /= (BUFF_SIZE - 1);
-
-    if(newValue.x - currentAverage.x < 0){
-        currentAverage.x = currentAverage.x + (((newValue.x - currentAverage.x)*-1)/ BUFF_SIZE);
-    } else{
-        currentAverage.x = currentAverage.x + ((newValue.x - currentAverage.x) / BUFF_SIZE);
-    }
-
-
-    if(currentAverage.z < 0){
-        currentAverage.z *=-1;
-    }
-    currentAverage.z = ((currentAverage.z * BUFF_SIZE) - oldValue.z);
-    currentAverage.z /= (BUFF_SIZE - 1);
-    if(newValue.z - currentAverage.z < 0){
-        currentAverage.z = currentAverage.z + (((newValue.z - currentAverage.z)*-1)/ BUFF_SIZE);
-    } else{
-        currentAverage.z = currentAverage.z + ((newValue.z - currentAverage.z)/ BUFF_SIZE);
-    }
-
-
-    if(currentAverage.y < 0){
-        currentAverage.y *=-1;
-    }
-    currentAverage.y = ((currentAverage.y * BUFF_SIZE) - oldValue.y) ;
-    currentAverage.y /= (BUFF_SIZE - 1);
-    if(newValue.y - currentAverage.y < 0){
-        currentAverage.y = currentAverage.y + (((newValue.y - currentAverage.y)*-1)/ BUFF_SIZE);
-    } else{
-        currentAverage.y = currentAverage.y + ((newValue.y - currentAverage.y)/ BUFF_SIZE);
-    }
-
-
-    return currentAverage;
-    */
-
+    uint64_t sum = 0;
+    uint32_t temp;
+    uint32_t average;
 
     int i;
-    vector3_t sum;
-    sum.x = 0;
-    sum.y = 0;
-    sum.z = 0;
-    vector3_t temp;
-
     for(i = 0; i < BUFF_SIZE;i++){
         temp = readCircBuf(buffer);
-        if(temp.x < 0){
-            temp.x *= -1;
-        }
-        if(temp.y < 0){
-            temp.y *= -1;
-        }
-        if(temp.z < 0){
-            temp.z *= -1;
-        }
-        sum.x = sum.x + temp.x;
-        sum.y = sum.y + temp.y;
-        sum.z = sum.z + temp.z;
+        sum += temp;
     }
-    currentAverage.x = ((sum.x / BUFF_SIZE));
-    currentAverage.y = ((sum.y / BUFF_SIZE));
-    currentAverage.z = ((sum.z / BUFF_SIZE));
 
-    return currentAverage;
+    average = ((sum / BUFF_SIZE));
+    return average;
 
 }
 
@@ -156,27 +99,46 @@ int main()
     initDisplay();
     initButtons();
 
-    circBuf_t buffer;
+    circBuf_t bufferZ;
+    circBuf_t bufferX;
+    circBuf_t bufferY;
+
+
     uint32_t BUFF_SIZE = 20;
     vector3_t currentAverage;
     vector3_t adjustedAverage;
 
     currentAverage = getAcclData();
 
-    initCircBuf(&buffer, BUFF_SIZE);
+
+    initCircBuf(&bufferZ, BUFF_SIZE);
+    initCircBuf(&bufferX, BUFF_SIZE);
+    initCircBuf(&bufferY, BUFF_SIZE);
+
 
 
     int i;
+
     for(i = 0; i < 20; i++){
+
         accl_data = getAcclData();
-        writeCircBuf(&buffer,accl_data);
+        if(accl_data.x < 0){
+            accl_data.x *=-1;
+        }
+        if(accl_data.y < 0){
+            accl_data.y *=-1;
+        }
+        if(accl_data.z < 0){
+            accl_data.z *=-1;
+        }
+
+        writeCircBuf(&bufferZ,accl_data.z);
+        writeCircBuf(&bufferX,accl_data.x);
+        writeCircBuf(&bufferY,accl_data.y);
+
     }
 
-    //int entry = 0; //keeps track of where the buffers up to
-    //vector3_t oldValue; // keeps track of value in buffer that gets overwritten
-    //oldValue = readCircBuf(&buffer);
 
-    printf("hello");
     OLEDStringDraw("Acceleration", 0, 0);
 
 
@@ -185,24 +147,25 @@ int main()
         SysCtlDelay(SysCtlClockGet () / 8);
 
         accl_data = getAcclData();
-        //accl_data = convert(accl_data, accl_unit);
+        if(accl_data.x < 0){
+            accl_data.x *=-1;
+        }
+        if(accl_data.y < 0){
+            accl_data.y *=-1;
+        }
+        if(accl_data.z < 0){
+            accl_data.z *=-1;
+        }
 
-        //buffer.rindex = entry;
-        //buffer.windex = entry;
-
-        //oldValue = readCircBuf(&buffer);
-
-        writeCircBuf(&buffer,accl_data);
+        writeCircBuf(&bufferX,accl_data.x);
+        writeCircBuf(&bufferY,accl_data.y);
+        writeCircBuf(&bufferZ,accl_data.z);
 
 
-        currentAverage = sumData(currentAverage,BUFF_SIZE,&buffer);
+        currentAverage.x = sumData(BUFF_SIZE,&bufferX);
+        currentAverage.y = sumData(BUFF_SIZE,&bufferY);
+        currentAverage.z = sumData(BUFF_SIZE,&bufferZ);
 
-        /*
-        if(entry < BUFF_SIZE){
-            entry++;
-        } else{
-            entry = 0;
-        }*/
 
 
 
