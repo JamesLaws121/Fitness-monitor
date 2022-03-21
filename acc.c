@@ -9,7 +9,6 @@ acc.c
  https://learn.canterbury.ac.nz/pluginfile.php/4291802/mod_folder/content/0/Week_3_lab_code.zip
 ========================================================*/
 
-//edited by J Laws
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -109,50 +108,3 @@ vector3_t getAcclData (void)
 
     return acceleration;
 }
-
-
-
-/*======================================================
- Function to adjust units of acceleration
- =======================================================*/
-vector3_t adjustData(vector3_t acceleration,int8_t current_state)
-{
-    if(current_state == 0){
-        //Raw --> milli g
-        acceleration.x *= 100;
-        acceleration.y *= 100;
-        acceleration.z *= 100;
-
-        acceleration.x /= 256;
-        acceleration.y /= 256;
-        acceleration.z /= 256;
-
-        acceleration.x *= 10;
-        acceleration.y *= 10;
-        acceleration.z *= 10;
-    } else if(current_state == 1){
-        // milli g --> ms^-1
-        acceleration.x /= 100;
-        acceleration.y /= 100;
-        acceleration.z /= 100;
-
-        acceleration.x *= 9.81;
-        acceleration.y *= 9.81;
-        acceleration.z *= 9.81;
-    } else if(current_state == 2){
-        // ms^-1 --> milli g
-        acceleration.x *= 100;
-        acceleration.y *= 100;
-        acceleration.z *= 100;
-
-        acceleration.x /= 9.81;
-        acceleration.y /= 9.81;
-        acceleration.z /= 9.81;
-    }
-
-
-
-    return acceleration;
-}
-
-

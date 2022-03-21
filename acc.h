@@ -77,9 +77,6 @@ void initAccl(void);
 // Returns acceleromter data as a 3 space vector
 vector3_t getAcclData(void);
 
-//Adjusts data to mg
-vector3_t adjustData(vector3_t,int8_t current_state);
-
 #endif /*ACC_H_*/
 
 
