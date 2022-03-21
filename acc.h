@@ -80,30 +80,3 @@ vector3_t getAcclData(void);
 vector3_t convert(vector3_t accl_raw, uint8_t unit);
 
 #endif /*ACC_H_*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

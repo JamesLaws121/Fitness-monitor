@@ -103,9 +103,10 @@ int main()
         SysCtlDelay(SysCtlClockGet () / 150);
 
         accl_data_raw = getAcclData();
+        accl_data = convert(accl_data,current_state);
 
-        accl_data = getAcclData();
-        unit = changeUnits(&current_state,unit);
+        ///accl_data = getAcclData();
+        //unit = changeUnits(&current_state,unit);
 
         //Check Up button
 
@@ -114,9 +115,7 @@ int main()
         switch(checkButton(UP))
         {
         case PUSHED:
-            accl_data = adjustData(accl_data,current_state);
             unit = changeUnits(&current_state,unit);
-
             //OLEDStringDraw("hello", 0, 1);
             break;
         default:

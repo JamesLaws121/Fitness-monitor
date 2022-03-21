@@ -9,6 +9,7 @@ acc.c
  https://learn.canterbury.ac.nz/pluginfile.php/4291802/mod_folder/content/0/Week_3_lab_code.zip
 ========================================================*/
 
+//edited by J Laws
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -118,15 +119,42 @@ vector3_t getAcclData (void)
     vector3_t convert(vector3_t accl_raw, uint8_t unit){
         vector3_t accl_out;
 
+
         switch (unit) {
-        case 0:
-            accl_out = accl_raw;
-            break;
+            case 0:
+                //Raw
+                accl_out = accl_raw;
+
+                break;
         case 1:
             // TODO: convert to Gs
+            // raw --> milli g
+            acceleration.x *= 100;
+            acceleration.y *= 100;
+            acceleration.z *= 100;
+
+            acceleration.x /= 256;
+            acceleration.y /= 256;
+            acceleration.z /= 256;
+
+            acceleration.x *= 10;
+            acceleration.y *= 10;
+            acceleration.z *= 10;
             break;
         case 2:
-            // TODO: convert to m/s/s
+            // raw --> ms^-1
+
+            acceleration.x *= 9.81;
+            acceleration.y *= 9.81;
+            acceleration.z *= 9.81;
+
+            
+            acceleration.x /= 256;
+            acceleration.y /= 256;
+            acceleration.z /= 256;
+
+
+
             break;
         default:
             accl_out.x = 0;
@@ -134,4 +162,22 @@ vector3_t getAcclData (void)
             accl_out.z = 0;
         }
         return accl_out;
+}
+
+
+
+
+vector3_t adjustData(vector3_t acceleration,int8_t current_state)
+{
+    if(current_state == 0){
+
+    } else if(current_state == 1){
+
+    } else if(current_state == 2){
+
+    }
+
+
+
+    return acceleration;
 }
