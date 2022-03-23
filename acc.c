@@ -177,8 +177,16 @@ char* getAcclUnitStr(int8_t unit_num){
         return "";
     }
 }
-/*
-vector3_t getOrientation(vector3_t accl_raw, uint8_t unit){
 
+orientation_t getOrientation(vector3_t accl_raw)
+{
+    //Do a bunch of math to calculate orientation
+
+    orientation_t orientation;
+    orientation.roll = 50;
+    orientation.pitch = 50;
+
+
+    return orientation;
 }
-*/
+

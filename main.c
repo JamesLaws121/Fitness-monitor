@@ -91,6 +91,7 @@ uint64_t sumData(uint32_t BUFF_SIZE,circBuf_t* buffer){
 // Main
 int main()
 {
+    orientation_t orientation;
     vector3_t accl_data;
     uint8_t   accl_unit = 0;
 
@@ -103,6 +104,7 @@ int main()
     circBuf_t bufferX;
     circBuf_t bufferY;
 
+    int orientation_counter = 0;
 
     uint32_t BUFF_SIZE = 20;
     vector3_t currentAverage;
@@ -115,6 +117,8 @@ int main()
     initCircBuf(&bufferX, BUFF_SIZE);
     initCircBuf(&bufferY, BUFF_SIZE);
 
+
+    bool acel_disp = true;
 
 
     int i;
@@ -181,22 +185,38 @@ int main()
         default:
             break;
         }
-        /*
+
         switch(checkButton(DOWN))
         {
         case PUSHED:
-
+            acel_disp = false;
             break;
         default:
             break;
         }
-        */
 
-        // Display acceleration
-        adjustedAverage = convert(currentAverage, accl_unit);
-        displayUpdate("Accl", "X", adjustedAverage.x, 1, getAcclUnitStr(accl_unit));
-        displayUpdate("Accl", "Y", adjustedAverage.y, 2, getAcclUnitStr(accl_unit));
-        displayUpdate("Accl", "Z", adjustedAverage.z, 3, getAcclUnitStr(accl_unit));
+
+
+        if(acel_disp){
+            // Display acceleration
+            adjustedAverage = convert(currentAverage, accl_unit);
+            displayUpdate("Accl", "X", adjustedAverage.x, 1, getAcclUnitStr(accl_unit));
+            displayUpdate("Accl", "Y", adjustedAverage.y, 2, getAcclUnitStr(accl_unit));
+            displayUpdate("Accl", "Z", adjustedAverage.z, 3, getAcclUnitStr(accl_unit));
+        } else{
+            orientation_counter++;
+            //guessed the wait number will calculate later
+            if(orientation_counter == 10){
+                acel_disp = true;
+                orientation_counter = 0;
+            }
+            orientation = getOrientation(currentAverage);
+            OLEDStringDraw("Orientation     ", 0,0);
+            OLEDStringDraw("                ", 0,3);
+            displayUpdate("Roll", ": ", orientation.roll, 1, "%");
+            displayUpdate("Pitch", ": ", orientation.pitch, 2, "%");
+        }
+
     }
 
 }

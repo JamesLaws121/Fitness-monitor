@@ -19,6 +19,11 @@ typedef struct{
     int16_t z;
 } vector3_t;
 
+typedef struct{
+    int16_t roll;
+    int16_t pitch;
+} orientation_t;
+
 
 //Accl Interrupt Pins
 
@@ -81,5 +86,7 @@ vector3_t convert(vector3_t accl_raw, uint8_t unit);
 
 // Returns a string representing the unit
 char* getAcclUnitStr(int8_t unit_num);
+
+orientation_t getOrientation(vector3_t accl_raw);
 
 #endif /*ACC_H_*/
