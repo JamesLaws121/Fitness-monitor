@@ -182,7 +182,7 @@ char* getAcclUnitStr(int8_t unit_num){
 orientation_t radiansToDegrees(orientation_t orientation){
 
     orientation.roll = ((orientation.roll*57.3)/1000);
-    orientation.pitch = ((orientation.pitch*57.3));
+    orientation.pitch = ((orientation.pitch*57.3)/1000);
     return orientation;
 }
 
@@ -198,7 +198,7 @@ orientation_t getOrientation(vector3_t accl_raw)
 
     temp = ((accl_raw.y*1000)/(accl_raw.z));
     temp /= 1000;
-    orientation.roll = atan(temp)*1000;
+    orientation.pitch = atan(temp)*1000;
 
 
 
@@ -208,7 +208,7 @@ orientation_t getOrientation(vector3_t accl_raw)
     temp = ((accl_raw.x*-1)/temp);
 
 
-    orientation.pitch = atan(temp);
+    orientation.roll = atan(temp)*1000;
 
 
     return radiansToDegrees(orientation);
