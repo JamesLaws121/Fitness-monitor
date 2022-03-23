@@ -71,7 +71,7 @@ void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char *
 }
 
 
-uint64_t sumData(uint32_t BUFF_SIZE,circBuf_t* buffer){
+uint64_t averageData(uint32_t BUFF_SIZE,circBuf_t* buffer){
 
     uint64_t sum = 0;
     uint32_t temp;
@@ -118,7 +118,7 @@ int main()
     initCircBuf(&bufferY, BUFF_SIZE);
 
 
-    bool acel_disp = true;
+    bool acel_disp = false;
 
 
     int i;
@@ -143,12 +143,20 @@ int main()
     }
 
 
+    currentAverage.x = averageData(BUFF_SIZE,&bufferX);
+    currentAverage.y = averageData(BUFF_SIZE,&bufferY);
+    currentAverage.z = averageData(BUFF_SIZE,&bufferZ);
+
+    orientation = getOrientation(currentAverage);
+
+
     OLEDStringDraw("Acceleration", 0, 0);
 
 
     while (1)
     {
-        SysCtlDelay(SysCtlClockGet () / 8);
+
+        SysCtlDelay(SysCtlClockGet () / 8); //aprox 2.5 hz
 
         accl_data = getAcclData();
         if(accl_data.x < 0){
@@ -166,9 +174,9 @@ int main()
         writeCircBuf(&bufferZ,accl_data.z);
 
 
-        currentAverage.x = sumData(BUFF_SIZE,&bufferX);
-        currentAverage.y = sumData(BUFF_SIZE,&bufferY);
-        currentAverage.z = sumData(BUFF_SIZE,&bufferZ);
+        currentAverage.x = averageData(BUFF_SIZE,&bufferX);
+        currentAverage.y = averageData(BUFF_SIZE,&bufferY);
+        currentAverage.z = averageData(BUFF_SIZE,&bufferZ);
 
 
 
@@ -190,6 +198,7 @@ int main()
         {
         case PUSHED:
             acel_disp = false;
+            orientation = getOrientation(currentAverage);
             break;
         default:
             break;
@@ -206,15 +215,15 @@ int main()
         } else{
             orientation_counter++;
             //guessed the wait number will calculate later
-            if(orientation_counter == 10){
+            if(orientation_counter == 8){
                 acel_disp = true;
                 orientation_counter = 0;
             }
-            orientation = getOrientation(currentAverage);
+
             OLEDStringDraw("Orientation     ", 0,0);
             OLEDStringDraw("                ", 0,3);
-            displayUpdate("Roll", ": ", orientation.roll, 1, "%");
-            displayUpdate("Pitch", ": ", orientation.pitch, 2, "%");
+            displayUpdate("Roll", ": ", orientation.roll, 1, "deg");
+            displayUpdate("Pitch", ":", orientation.pitch, 2, "deg");
         }
 
     }
