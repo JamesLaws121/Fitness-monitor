@@ -71,11 +71,11 @@ void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char *
 }
 
 
-uint64_t averageData(uint32_t BUFF_SIZE,circBuf_t* buffer){
+int64_t averageData(uint32_t BUFF_SIZE,circBuf_t* buffer){
 
-    uint64_t sum = 0;
-    uint32_t temp;
-    uint32_t average;
+    int64_t sum = 0;
+    int32_t temp;
+    int32_t average;
 
     int i;
     for(i = 0; i < BUFF_SIZE;i++){
@@ -126,15 +126,7 @@ int main()
     for(i = 0; i < 20; i++){
 
         accl_data = getAcclData();
-        if(accl_data.x < 0){
-            accl_data.x *=-1;
-        }
-        if(accl_data.y < 0){
-            accl_data.y *=-1;
-        }
-        if(accl_data.z < 0){
-            accl_data.z *=-1;
-        }
+
 
         writeCircBuf(&bufferZ,accl_data.z);
         writeCircBuf(&bufferX,accl_data.x);
@@ -159,15 +151,6 @@ int main()
         SysCtlDelay(SysCtlClockGet () / 8); //aprox 2.5 hz
 
         accl_data = getAcclData();
-        if(accl_data.x < 0){
-            accl_data.x *=-1;
-        }
-        if(accl_data.y < 0){
-            accl_data.y *=-1;
-        }
-        if(accl_data.z < 0){
-            accl_data.z *=-1;
-        }
 
         writeCircBuf(&bufferX,accl_data.x);
         writeCircBuf(&bufferY,accl_data.y);
@@ -218,6 +201,7 @@ int main()
             if(orientation_counter == 8){
                 acel_disp = true;
                 orientation_counter = 0;
+                OLEDStringDraw("Acceleration", 0, 0);
             }
 
             OLEDStringDraw("Orientation     ", 0,0);
