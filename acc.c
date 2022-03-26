@@ -185,23 +185,23 @@ orientation_t getOrientation(vector3_t accl_raw)
     float temp = 0;
 
     // Calculate pitch angle
-    temp = ((accl_raw.y*1000)/(accl_raw.z));
+    temp = ((accl_raw.x*1000)/(accl_raw.z));
     temp /= 1000;
-    orientation.pitch = atan(temp)*1000;
+    orientation.pitch = atan(temp)*-1000;
 
     // Calculate roll angle
-    temp = (accl_raw.x*1000)/accl_raw.z;
+    temp = (accl_raw.y*1000)/accl_raw.z;
     temp /= 1000;
-    orientation.roll = atan(temp)*-1000;
+    orientation.roll = atan(temp)*1000;
 
     // Adjust angles if board is upside down
     if (accl_raw.z < 0) {
-        if (accl_raw.x < 0) {
-            orientation.roll = 3141 + (orientation.roll);
-        } else {
+        if (accl_raw.y < 0) {
             orientation.roll = -3141 + (orientation.roll);
+        } else {
+            orientation.roll = 3141 + (orientation.roll);
         }
-        orientation.pitch *= -1;
+
     }
     return radiansToDegrees(orientation);
 }
