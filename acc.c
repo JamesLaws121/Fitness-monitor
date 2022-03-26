@@ -201,8 +201,10 @@ orientation_t getOrientation(vector3_t accl_raw)
         } else {
             orientation.roll = 3141 + (orientation.roll);
         }
-
     }
+
+    // FIXME: Orientation readings become unreliable when accl_raw.z is close to zero
+
     return radiansToDegrees(orientation);
 }
 

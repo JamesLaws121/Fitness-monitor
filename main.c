@@ -58,6 +58,7 @@ void initDisplay(void)
 
 
 
+
 void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char *str3)
 {
     char text_buffer[17];           //Display fits 16 characters wide.
@@ -85,131 +86,154 @@ int64_t averageData(uint32_t BUFF_SIZE,circBuf_t* buffer){
 
     average = ((sum / BUFF_SIZE));
     return average;
-
 }
 
 // Main
 int main()
 {
+    //=========================================================================================
+    // Setup Code (runs once)
+    //=========================================================================================
     orientation_t orientation;
     vector3_t accl_data;
+    vector3_t currentAverage;
+    vector3_t adjustedAverage;
     uint8_t   accl_unit = 0;
 
+    // Initialize required modules
     initClock();
     initAccl();
     initDisplay();
     initButtons();
 
+    // Setup circular buffer for accelerometer data
     circBuf_t bufferZ;
     circBuf_t bufferX;
     circBuf_t bufferY;
-
-    int orientation_counter = 0;
-
     uint32_t BUFF_SIZE = 20;
-    vector3_t currentAverage;
-    vector3_t adjustedAverage;
-
-    currentAverage = getAcclData();
-
-
     initCircBuf(&bufferZ, BUFF_SIZE);
     initCircBuf(&bufferX, BUFF_SIZE);
     initCircBuf(&bufferY, BUFF_SIZE);
 
-
-    bool acel_disp = false;
-
-
-    int i;
-
+    // Obtain initial set of accelerometer data
+    uint8_t i;
     for(i = 0; i < 20; i++){
-
         accl_data = getAcclData();
-
-
         writeCircBuf(&bufferZ,accl_data.z);
         writeCircBuf(&bufferX,accl_data.x);
         writeCircBuf(&bufferY,accl_data.y);
-
     }
-
-
     currentAverage.x = averageData(BUFF_SIZE,&bufferX);
     currentAverage.y = averageData(BUFF_SIZE,&bufferY);
     currentAverage.z = averageData(BUFF_SIZE,&bufferZ);
-
     orientation = getOrientation(currentAverage);
 
 
-    OLEDStringDraw("Acceleration", 0, 0);
+    uint8_t orientation_counter = 0;
+    uint8_t display_state = 0;
 
 
+    //==========================================================================================
+    // Main Loop
+    //==========================================================================================
     while (1)
     {
+        // Set the program speed using a magic number
+        // TODO: improve main loop to use SYSTICK interrupts for timing or something similar
+        SysCtlDelay(SysCtlClockGet () / 32); ///8 = 2.5 hz approx
 
-        SysCtlDelay(SysCtlClockGet () / 8); //aprox 2.5 hz
-
+        // Obtain accelerometer data and write to circular buffer
         accl_data = getAcclData();
-
         writeCircBuf(&bufferX,accl_data.x);
         writeCircBuf(&bufferY,accl_data.y);
         writeCircBuf(&bufferZ,accl_data.z);
 
-
+        // Take a new running average of acceleration
         currentAverage.x = averageData(BUFF_SIZE,&bufferX);
         currentAverage.y = averageData(BUFF_SIZE,&bufferY);
         currentAverage.z = averageData(BUFF_SIZE,&bufferZ);
 
 
-
-
-        //Check Up button
+        //Check buttons for user input and take some action.
+        // UP: change acceleration units
+        // Down: Set new reference orientation
         updateButtons();
 
-        switch(checkButton(UP))
-        {
-        case PUSHED:
+        if (checkButton(UP) == PUSHED) {
             accl_unit++;
             if (accl_unit >= 3) {accl_unit = 0;}
-            break;
-        default:
-            break;
         }
-
-        switch(checkButton(DOWN))
-        {
-        case PUSHED:
-            acel_disp = false;
+        if (checkButton(DOWN) == PUSHED) {
+            display_state = 0;
             orientation = getOrientation(currentAverage);
-            break;
-        default:
-            break;
         }
 
 
+        // Display information to the screen depending on the display state
+        switch (display_state)
+        {
+        case 0: //0: Display reference orientation
+            OLEDStringDraw("Orientation     ", 0,0);
+            displayUpdate("Roll", ": ", orientation.roll, 1, "deg");
+            displayUpdate("Pitch", ":", orientation.pitch, 2, "deg");
+            OLEDStringDraw("                ", 0,3);
+            // TODO: improve following code for keeping orientation on screen for 3 seconds
+            orientation_counter++;
+            if(orientation_counter == 16){
+                display_state = 1;
+                orientation_counter = 0;
+            }
+            break;
 
-        if(acel_disp){
-            // Display acceleration
+        case 1: //1: Display acceleration data
+            OLEDStringDraw("Acceleration", 0, 0);
             adjustedAverage = convert(currentAverage, accl_unit);
             displayUpdate("Accl", "X", adjustedAverage.x, 1, getAcclUnitStr(accl_unit));
             displayUpdate("Accl", "Y", adjustedAverage.y, 2, getAcclUnitStr(accl_unit));
             displayUpdate("Accl", "Z", adjustedAverage.z, 3, getAcclUnitStr(accl_unit));
-        } else{
-            orientation_counter++;
-            //guessed the wait number will calculate later
-            if(orientation_counter == 8){
-                acel_disp = true;
-                orientation_counter = 0;
-                OLEDStringDraw("Acceleration", 0, 0);
-            }
+            break;
 
-            OLEDStringDraw("Orientation     ", 0,0);
+        default: //Invalid display_state: Blank screen
+            OLEDStringDraw("                ", 0,0);
+            OLEDStringDraw("                ", 0,1);
+            OLEDStringDraw("                ", 0,2);
             OLEDStringDraw("                ", 0,3);
-            displayUpdate("Roll", ": ", orientation.roll, 1, "deg");
-            displayUpdate("Pitch", ":", orientation.pitch, 2, "deg");
+            break;
         }
 
-    }
 
+
+
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
