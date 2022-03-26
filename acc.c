@@ -125,32 +125,15 @@ vector3_t convert(vector3_t accl_raw, uint8_t unit){
             break;
         case 1:
             // raw --> milli g
-            accl_out.x = accl_raw.x * 100;
-            accl_out.y = accl_raw.y * 100;
-            accl_out.z = accl_raw.z * 100;
-
-            accl_out.x = accl_out.x / 256;
-            accl_out.y = accl_out.y / 256;
-            accl_out.z = accl_out.z / 256;
-
-            accl_out.x = accl_out.x * 10;
-            accl_out.y = accl_out.y * 10;
-            accl_out.z = accl_out.z * 10;
+            accl_out.x = ((accl_raw.x * 100) / 256) * 10;
+            accl_out.y = ((accl_raw.y * 100) / 256) * 10;
+            accl_out.z = ((accl_raw.z * 100) / 256) * 10;
             break;
         case 2:
             // raw --> ms^-1
-
-            accl_out.x = accl_raw.x * 9.81;
-            accl_out.y = accl_raw.y * 9.81;
-            accl_out.z = accl_raw.z * 9.81;
-
-
-            accl_out.x = accl_out.x / 256;
-            accl_out.y = accl_out.y / 256;
-            accl_out.z = accl_out.z / 256;
-
-
-
+            accl_out.x = (accl_raw.x * 9.81) / 256;
+            accl_out.y = (accl_raw.y * 9.81) / 256;
+            accl_out.z = (accl_raw.z * 9.81) / 256;
             break;
         default:
             accl_out.x = 0;
@@ -162,7 +145,6 @@ vector3_t convert(vector3_t accl_raw, uint8_t unit){
 
 
 
-
 //====================================================================
 // Returns a string representing the given unit
 // 0=raw(no unit), 1=mGs, 2=m/s/s.
@@ -170,15 +152,20 @@ vector3_t convert(vector3_t accl_raw, uint8_t unit){
 char* getAcclUnitStr(int8_t unit_num){
 
     switch (unit_num){
-    case 1:
-        return "mG";
-    case 2:
-        return "m/s/s";
-    default:
-        return "";
+        case 1:
+            return "mG";
+        case 2:
+            return "m/s/s";
+        default:
+            return "";
     }
 }
 
+
+
+//===================================================================
+// Converts a given angle from milli radians to degrees
+//===================================================================
 orientation_t radiansToDegrees(orientation_t orientation){
 
     orientation.roll = ((orientation.roll*57.3)/1000);
@@ -186,31 +173,36 @@ orientation_t radiansToDegrees(orientation_t orientation){
     return orientation;
 }
 
+
+
+//==================================================================
+// Returns the current orientation of the accelerometer in terms
+//  of pitch and roll in milliradians.
+//==================================================================
 orientation_t getOrientation(vector3_t accl_raw)
 {
-    //Do a bunch of math to calculate orientation
-
     orientation_t orientation;
-    orientation.roll = 0;
-    orientation.pitch = 0;
-
     float temp = 0;
 
+    // Calculate pitch angle
     temp = ((accl_raw.y*1000)/(accl_raw.z));
     temp /= 1000;
     orientation.pitch = atan(temp)*1000;
 
+    // Calculate roll angle
+    temp = (accl_raw.x*1000)/accl_raw.z;
+    temp /= 1000;
+    orientation.roll = atan(temp)*-1000;
 
-
-
-    temp = sqrt(pow((accl_raw.y),2) + pow((accl_raw.z),2));
-
-    temp = ((accl_raw.x*-1)/temp);
-
-
-    orientation.roll = atan(temp)*1000;
-
-
+    // Adjust angles if board is upside down
+    if (accl_raw.z < 0) {
+        if (accl_raw.x < 0) {
+            orientation.roll = 3141 + (orientation.roll);
+        } else {
+            orientation.roll = -3141 + (orientation.roll);
+        }
+        orientation.pitch *= -1;
+    }
     return radiansToDegrees(orientation);
 }
 
