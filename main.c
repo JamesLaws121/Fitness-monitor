@@ -159,7 +159,7 @@ int main()
         // Down: Set new reference orientation
         updateButtons();
 
-        if (checkButton(UP) == PUSHED) {
+        if ((checkButton(UP) == PUSHED) && (display_state == 1)) {
             accl_unit++;
             if (accl_unit >= 3) {accl_unit = 0;}
         }
