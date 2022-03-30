@@ -40,12 +40,12 @@
 #include "buttons4.h"
 #include "circBufT.h"
 
-//#define DISPLAY_TICK
+
 
 
 void initClock (void)
 {
-    // Set the clock rate to 20 MHz
+    // Set the clock rate
     SysCtlClockSet(SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN |
                    SYSCTL_XTAL_16MHZ);
 }
@@ -57,11 +57,9 @@ void initDisplay(void)
 }
 
 
-
-
 void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char *str3)
 {
-    char text_buffer[17];           //Display fits 16 characters wide.
+    char text_buffer[17]; //Display fits 16 characters wide.
 
     // Clear the line to be updated.
     OLEDStringDraw("                ", 0, charLine);
@@ -73,7 +71,7 @@ void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char *
 
 
 int64_t averageData(uint32_t BUFF_SIZE,circBuf_t* buffer){
-
+    // returns the mean of the data stored in the given buffer
     int64_t sum = 0;
     int32_t temp;
     int32_t average;
@@ -87,6 +85,8 @@ int64_t averageData(uint32_t BUFF_SIZE,circBuf_t* buffer){
     average = ((sum / BUFF_SIZE));
     return average;
 }
+
+
 
 // Main
 int main()
@@ -133,14 +133,14 @@ int main()
     uint8_t display_state = 0;
 
 
-    //==========================================================================================
+    //=========================================================================================
     // Main Loop
-    //==========================================================================================
+    //=========================================================================================
     while (1)
     {
         // Set the program speed using a magic number
         // TODO: improve main loop to use SYSTICK interrupts for timing or something similar
-        SysCtlDelay(SysCtlClockGet () / 32); ///8 = 2.5 hz approx
+        SysCtlDelay(SysCtlClockGet () / 32); //delay(s) = 3/magic number
 
         // Obtain accelerometer data and write to circular buffer
         accl_data = getAcclData();
@@ -177,9 +177,9 @@ int main()
             displayUpdate("Roll", ": ", orientation.roll, 1, "deg");
             displayUpdate("Pitch", ":", orientation.pitch, 2, "deg");
             OLEDStringDraw("                ", 0,3);
-            // TODO: improve following code for keeping orientation on screen for 3 seconds
+            // TODO: improve following code for keeping orientation on screen for 3 seconds by using a proper timer
             orientation_counter++;
-            if(orientation_counter == 16){
+            if(orientation_counter >= 32){ //keep the same as number used in SysCtlDelay above for approximately 3 second delay
                 display_state = 1;
                 orientation_counter = 0;
             }
