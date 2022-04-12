@@ -40,7 +40,15 @@
 #include "buttons4.h"
 #include "circBufT.h"
 
+//Define constants
+#define STEP_DISTANCE 1.4
 
+//Define global variables
+uint8_t display_state;
+uint16_t step_count;
+uint16_t step_goal;
+enum step_units{STEPS=0, PERCENT=1} step_unit;
+enum dist_units{KILOMETRES=0, MILES=1} dist_unit;
 
 
 void initClock (void)
@@ -51,13 +59,10 @@ void initClock (void)
 }
 
 
-void initDisplay(void)
-{
-    OLEDInitialise();
-}
-
-
-void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char *str3)
+//=====================================================================================
+// lineUpdate: Updates a single line on the OLED display.
+//=====================================================================================
+void lineUpdate(char *str1, int16_t num, char *str2, uint8_t charLine)
 {
     char text_buffer[17]; //Display fits 16 characters wide.
 
@@ -65,13 +70,119 @@ void displayUpdate(char *str1, char *str2, int16_t num, uint8_t charLine, char *
     OLEDStringDraw("                ", 0, charLine);
 
     // Draw a new string to the display.
-    usnprintf(text_buffer, sizeof(text_buffer), "%s %s %3d %s", str1, str2, num, str3);
+    usnprintf(text_buffer, sizeof(text_buffer), "%s %3d %s", str1, num, str2);
     OLEDStringDraw(text_buffer, 0, charLine);
 }
 
 
+//====================================================================================
+// displayUpdate: Updates the OLED display.
+//====================================================================================
+void displayUpdate(void)
+{
+    // If a state change has occurred, clear the display.
+    static uint8_t prev_state = 0;
+    if (display_state != prev_state) {
+        OLEDStringDraw("                ", 0,0);
+        OLEDStringDraw("                ", 0,1);
+        OLEDStringDraw("                ", 0,2);
+        OLEDStringDraw("                ", 0,3);
+    }
+    prev_state = display_state;
+
+    // Update the display based on the current state.
+    switch (display_state)
+    {
+    case 0:
+        //0: Display current step count
+        OLEDStringDraw("Step Count     ",0,0);
+        if (step_unit == STEPS) {
+            lineUpdate("", step_count, "steps", 1);
+        }
+        else if (step_unit == PERCENT) {
+            uint8_t step_percent = (step_count * 100) / step_goal;
+            lineUpdate("", step_percent, "%", 1);
+        }
+        break;
+
+    case 1:
+        //1: Display the current distance traveled
+        OLEDStringDraw("Total Distance",0,0);
+        int16_t distance = step_count * STEP_DISTANCE;
+        if (dist_unit == KILOMETRES) {
+            lineUpdate("", distance/1000, "km", 1);
+        }
+        else if (dist_unit == MILES) {
+            lineUpdate("", (distance/1609), "miles", 1);
+        }
+        break;
+
+    case 2:
+        //2: Display the current goal
+        OLEDStringDraw("Step Goal      ",0,0);
+        break;
+
+    default:
+        //Invalid display_state: Blank screen
+        OLEDStringDraw("                ", 0,0);
+        OLEDStringDraw("                ", 0,1);
+        OLEDStringDraw("                ", 0,2);
+        OLEDStringDraw("                ", 0,3);
+        break;
+    }
+}
+
+
+//===================================================================================
+// processUserInput: takes some action based on some user input.
+//===================================================================================
+void processUserInput(void)
+{
+    //Inputs to check regardless of state
+    // left and right buttons should move between different screens
+    if (checkButton(LEFT) == PUSHED) {
+        if (display_state < 2) {
+            display_state += 1;
+        } else {
+            display_state = 0;
+        }
+    }
+
+    if (checkButton(RIGHT) == PUSHED) {
+        if (display_state > 0) {
+            display_state -= 1;
+        } else {
+            display_state = 2;
+        }
+    }
+
+    // State dependent inputs
+    switch (display_state)
+    {
+    case 0: //0: Displaying total steps
+        //UP: Toggle units between absolute steps and percentage of goal
+        if (checkButton(UP) == PUSHED) {
+            step_unit = !step_unit;
+        }
+        break;
+
+    case 1: //1: Displaying total distance
+        //UP: Toggle units between km and miles
+        if (checkButton(UP) == PUSHED) {
+            dist_unit = !dist_unit;
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
+
+//====================================================================================
+// averageData: returns the mean of the data stored in the given buffer
+//====================================================================================
 int64_t averageData(uint32_t BUFF_SIZE,circBuf_t* buffer){
-    // returns the mean of the data stored in the given buffer
     int64_t sum = 0;
     int32_t temp;
     int32_t average;
@@ -91,19 +202,23 @@ int64_t averageData(uint32_t BUFF_SIZE,circBuf_t* buffer){
 // Main
 int main()
 {
-    //=========================================================================================
+    //================================================================================
     // Setup Code (runs once)
-    //=========================================================================================
+    //================================================================================
     orientation_t orientation;
     vector3_t accl_data;
     vector3_t currentAverage;
-    vector3_t adjustedAverage;
-    uint8_t   accl_unit = 0;
+
+    // Initial values for variables
+    step_unit = STEPS;
+    dist_unit = KILOMETRES;
+    step_count = 1500;
+    step_goal = 1800;
 
     // Initialize required modules
     initClock();
     initAccl();
-    initDisplay();
+    OLEDInitialise();
     initButtons();
 
     // Setup circular buffer for accelerometer data
@@ -128,10 +243,7 @@ int main()
     currentAverage.z = averageData(BUFF_SIZE,&bufferZ);
     orientation = getOrientation(currentAverage);
 
-
-    uint8_t orientation_counter = 0;
-    uint8_t display_state = 0;
-
+    display_state = 0;
 
     //=========================================================================================
     // Main Loop
@@ -154,52 +266,12 @@ int main()
         currentAverage.z = averageData(BUFF_SIZE,&bufferZ);
 
 
-        //Check buttons for user input and take some action.
-        // UP: change acceleration units
-        // Down: Set new reference orientation
+        // Check buttons for user input and take some action.
         updateButtons();
+        processUserInput();
 
-        if ((checkButton(UP) == PUSHED) && (display_state == 1)) {
-            accl_unit++;
-            if (accl_unit >= 3) {accl_unit = 0;}
-        }
-        if (checkButton(DOWN) == PUSHED) {
-            display_state = 0;
-            orientation = getOrientation(currentAverage);
-        }
-
-
-        // Display information to the screen depending on the display state
-        switch (display_state)
-        {
-        case 0: //0: Display reference orientation
-            OLEDStringDraw("Orientation     ", 0,0);
-            displayUpdate("Roll", ": ", orientation.roll, 1, "deg");
-            displayUpdate("Pitch", ":", orientation.pitch, 2, "deg");
-            OLEDStringDraw("                ", 0,3);
-            // TODO: improve following code for keeping orientation on screen for 3 seconds by using a proper timer
-            orientation_counter++;
-            if(orientation_counter >= 32){ //keep the same as number used in SysCtlDelay above for approximately 3 second delay
-                display_state = 1;
-                orientation_counter = 0;
-            }
-            break;
-
-        case 1: //1: Display acceleration data
-            OLEDStringDraw("Acceleration", 0, 0);
-            adjustedAverage = convert(currentAverage, accl_unit);
-            displayUpdate("Accl", "X", adjustedAverage.x, 1, getAcclUnitStr(accl_unit));
-            displayUpdate("Accl", "Y", adjustedAverage.y, 2, getAcclUnitStr(accl_unit));
-            displayUpdate("Accl", "Z", adjustedAverage.z, 3, getAcclUnitStr(accl_unit));
-            break;
-
-        default: //Invalid display_state: Blank screen
-            OLEDStringDraw("                ", 0,0);
-            OLEDStringDraw("                ", 0,1);
-            OLEDStringDraw("                ", 0,2);
-            OLEDStringDraw("                ", 0,3);
-            break;
-        }
+        //Update the display
+        displayUpdate();
 
 
 
