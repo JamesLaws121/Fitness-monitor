@@ -39,14 +39,17 @@
 #include "i2c_driver.h"
 #include "buttons4.h"
 #include "circBufT.h"
+#include "ADC.h"
 
 //Define constants
 #define STEP_DISTANCE 1.4
+//#define SAMPLE_RATE_HZ 10 // for adc
 
 //Define global variables
 uint8_t display_state;
 uint16_t step_count;
-uint16_t step_goal;
+uint32_t step_goal;
+
 enum step_units{STEPS=0, PERCENT=1} step_unit;
 enum dist_units{KILOMETRES=0, MILES=1} dist_unit;
 
@@ -56,6 +59,17 @@ void initClock (void)
     // Set the clock rate
     SysCtlClockSet(SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN |
                    SYSCTL_XTAL_16MHZ);
+
+    // Set up the period for the SysTick timer.  The SysTick timer period is
+    // set as a function of the system clock.
+    //SysTickPeriodSet(SysCtlClockGet() / SAMPLE_RATE_HZ);
+    //
+    // Register the interrupt handler
+    //SysTickIntRegister(SysTickIntHandler);
+    //
+    // Enable interrupt and device
+    //SysTickIntEnable();
+    //SysTickEnable();
 }
 
 
@@ -88,7 +102,9 @@ void displayUpdate(void)
         OLEDStringDraw("                ", 0,2);
         OLEDStringDraw("                ", 0,3);
     }
+
     prev_state = display_state;
+
 
     // Update the display based on the current state.
     switch (display_state)
@@ -119,7 +135,8 @@ void displayUpdate(void)
 
     case 2:
         //2: Display the current goal
-        OLEDStringDraw("Step Goal      ",0,0);
+        OLEDStringDraw("   Step Goal   ",0,0);
+        lineUpdate("   ", step_goal, "steps", 1);
         break;
 
     default:
@@ -182,8 +199,8 @@ void processUserInput(void)
 //====================================================================================
 // averageData: returns the mean of the data stored in the given buffer
 //====================================================================================
-int64_t averageData(uint32_t BUFF_SIZE,circBuf_t* buffer){
-    int64_t sum = 0;
+int64_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer){
+    int32_t sum = 0;
     int32_t temp;
     int32_t average;
 
@@ -213,7 +230,7 @@ int main()
     step_unit = STEPS;
     dist_unit = KILOMETRES;
     step_count = 1500;
-    step_goal = 1800;
+    step_goal = 1700;
 
     // Initialize required modules
     initClock();
@@ -221,14 +238,21 @@ int main()
     OLEDInitialise();
     initButtons();
 
+    initADC();
+
+
+
+    //allows interupts
+    IntMasterEnable();
+
     // Setup circular buffer for accelerometer data
     circBuf_t bufferZ;
     circBuf_t bufferX;
     circBuf_t bufferY;
-    uint32_t BUFF_SIZE = 20;
+    uint8_t BUFF_SIZE = 20;
     initCircBuf(&bufferZ, BUFF_SIZE);
     initCircBuf(&bufferX, BUFF_SIZE);
-    initCircBuf(&bufferY, BUFF_SIZE);
+    //initCircBuf(&bufferY, BUFF_SIZE);
 
     // Obtain initial set of accelerometer data
     uint8_t i;
@@ -236,10 +260,10 @@ int main()
         accl_data = getAcclData();
         writeCircBuf(&bufferZ,accl_data.z);
         writeCircBuf(&bufferX,accl_data.x);
-        writeCircBuf(&bufferY,accl_data.y);
+        //writeCircBuf(&bufferY,accl_data.y);
     }
     currentAverage.x = averageData(BUFF_SIZE,&bufferX);
-    currentAverage.y = averageData(BUFF_SIZE,&bufferY);
+    //currentAverage.y = averageData(BUFF_SIZE,&bufferY);
     currentAverage.z = averageData(BUFF_SIZE,&bufferZ);
     orientation = getOrientation(currentAverage);
 
@@ -257,12 +281,12 @@ int main()
         // Obtain accelerometer data and write to circular buffer
         accl_data = getAcclData();
         writeCircBuf(&bufferX,accl_data.x);
-        writeCircBuf(&bufferY,accl_data.y);
+        //writeCircBuf(&bufferY,accl_data.y);
         writeCircBuf(&bufferZ,accl_data.z);
 
         // Take a new running average of acceleration
         currentAverage.x = averageData(BUFF_SIZE,&bufferX);
-        currentAverage.y = averageData(BUFF_SIZE,&bufferY);
+        //currentAverage.y = averageData(BUFF_SIZE,&bufferY);
         currentAverage.z = averageData(BUFF_SIZE,&bufferZ);
 
 
@@ -273,7 +297,10 @@ int main()
         //Update the display
         displayUpdate();
 
-
+        if(display_state == 2){
+            step_goal = getStep_goal();
+            //ADCSequenceDataGet(ADC0_BASE, 3, &step_goal);
+        }
 
 
     }
