@@ -124,12 +124,17 @@ void displayUpdate(void)
     case 1:
         //1: Display the current distance traveled
         OLEDStringDraw("Total Distance",0,0);
-        int16_t distance = step_count * STEP_DISTANCE;
+        OLEDStringDraw("                ", 0, 1);
+        uint16_t distance = (step_count*STEP_DISTANCE);
+        char text_buffer[17]; //Display fits 16 characters wide.
+
         if (dist_unit == KILOMETRES) {
-            lineUpdate("", distance/1000, "km", 1);
+            usnprintf(text_buffer, sizeof(text_buffer), "%d.%d km", (distance/1000), (distance % 1000)/10);
+            OLEDStringDraw(text_buffer, 0, 1);
         }
         else if (dist_unit == MILES) {
-            lineUpdate("", (distance/1609), "miles", 1);
+            usnprintf(text_buffer, sizeof(text_buffer), "%d.%d miles", (distance/1609), (((distance*1000)/1609) % 1000)/10);
+            OLEDStringDraw(text_buffer, 0, 1);
         }
         break;
 
