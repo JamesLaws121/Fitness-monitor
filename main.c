@@ -135,8 +135,8 @@ void displayUpdate(void)
 
     case 2:
         //2: Display the current goal
-        OLEDStringDraw("   Step Goal   ",0,0);
-        lineUpdate("   ", step_goal, "steps", 1);
+        OLEDStringDraw(" Set Step Goal ",0,0);
+        lineUpdate("   ", (getStep_goal() / 100)*100, "steps", 1);
         break;
 
     default:
@@ -190,6 +190,17 @@ void processUserInput(void)
         }
         break;
 
+    case 2: //2: Displaying current goal
+        //Potentiometer: Change displayed step goal
+        // This is currently being handled in ADC.c
+
+        //DOWN: Commit step goal
+        if (checkButton(DOWN) == PUSHED) {
+            step_goal = (getStep_goal() / 100)*100;
+            display_state = 0;
+        }
+        break;
+
     default:
         break;
     }
@@ -222,7 +233,7 @@ int main()
     //================================================================================
     // Setup Code (runs once)
     //================================================================================
-    orientation_t orientation;
+    //orientation_t orientation;
     vector3_t accl_data;
     vector3_t currentAverage;
 
@@ -252,7 +263,7 @@ int main()
     uint8_t BUFF_SIZE = 20;
     initCircBuf(&bufferZ, BUFF_SIZE);
     initCircBuf(&bufferX, BUFF_SIZE);
-    //initCircBuf(&bufferY, BUFF_SIZE);
+    initCircBuf(&bufferY, BUFF_SIZE);
 
     // Obtain initial set of accelerometer data
     uint8_t i;
@@ -263,9 +274,9 @@ int main()
         //writeCircBuf(&bufferY,accl_data.y);
     }
     currentAverage.x = averageData(BUFF_SIZE,&bufferX);
-    //currentAverage.y = averageData(BUFF_SIZE,&bufferY);
+    currentAverage.y = averageData(BUFF_SIZE,&bufferY);
     currentAverage.z = averageData(BUFF_SIZE,&bufferZ);
-    orientation = getOrientation(currentAverage);
+    //orientation = getOrientation(currentAverage);
 
     display_state = 0;
 
@@ -296,12 +307,6 @@ int main()
 
         //Update the display
         displayUpdate();
-
-        if(display_state == 2){
-            step_goal = getStep_goal();
-            //ADCSequenceDataGet(ADC0_BASE, 3, &step_goal);
-        }
-
 
     }
 }

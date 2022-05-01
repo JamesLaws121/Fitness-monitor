@@ -2,7 +2,7 @@
  * ADC.h
  *
  *  Created on: Apr 27, 2022
- *      Author: Dell Latitude
+ *
  */
 
 #ifndef ADC_H_
@@ -14,6 +14,8 @@ void ADCIntHandler(void);
 
 void initClock (void);
 
-void  initADC (void);
+void initADC (void);
+
+uint16_t getStep_goal();
 
 #endif /* ADC_H_ */

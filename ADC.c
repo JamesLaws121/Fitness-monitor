@@ -149,7 +149,7 @@ void  initADC(void)
     ADCIntEnable(ADC0_BASE, 3);
 }
 
-uint16_t getStep_goal(){
+getStep_goal(){
     uint16_t sum = 0;
     uint8_t i;
     for (i = 0; i < BUF_SIZE; i++)
