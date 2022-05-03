@@ -44,6 +44,12 @@
 //Define constants
 #define STEP_DISTANCE 1.4
 #define longPush 10
+//Switch constants
+#define SW1_BUT_PERIPH  SYSCTL_PERIPH_GPIOA
+#define SW1_BUT_PORT_BASE  GPIO_PORTA_BASE
+#define SW1_BUT_PIN  GPIO_PIN_6
+#define SW1_BUT_NORMAL  false
+
 
 //Define global variables
 uint8_t display_state;
@@ -51,6 +57,7 @@ uint16_t step_count;
 uint32_t step_goal;
 uint8_t down_count = 0; // used as a counter to tell how long a button is pushed
 uint8_t down = 0;
+
 
 enum step_units{STEPS=0, PERCENT=1} step_unit;
 enum dist_units{KILOMETRES=0, MILES=1} dist_unit;
@@ -166,29 +173,8 @@ void processUserInput(void)
     //TO DO
     // reorganize if and switch statements
 
-    uint8_t butState = checkButton(DOWN);
-    switch (butState)
-    {
-    case PUSHED:
-        down = 1;
-        break;
-    case RELEASED:
-        down = 0;
-        break;
-    // Do nothing if state is NO_CHANGE
-    }
-    if(down == 1 && (display_state == 0 || display_state == 1)){
-        down_count++;
-        if(down_count >= longPush){ //button down long push
-            step_count = 0;
-            down_count = 0;
-            down = 0;
-        }
-    } else{
-        down_count = 0;
-    }
 
-    //Inputs to check regardless of state
+    //Inputs to check regardless of state and test mode
     // left and right buttons should move between different screens
     if (checkButton(LEFT) == PUSHED) {
         if (display_state < 2) {
@@ -205,6 +191,50 @@ void processUserInput(void)
             display_state = 2;
         }
     }
+
+    /*
+     * Test Mode
+     */
+
+    if((GPIOPinRead (SW1_BUT_PORT_BASE, SW1_BUT_PIN) == SW1_BUT_PIN)){
+        OLEDStringDraw("TEST MODE    ",0,3);
+        if (checkButton(UP) == PUSHED) {
+            step_count += 100;
+        }
+        if (checkButton(DOWN) == PUSHED) {
+            step_count -= 100;
+        }
+
+        return;
+    } else{
+        OLEDStringDraw("                ", 0,3);
+    }
+
+    /*
+     *   Long down push
+     */
+    uint8_t downState = checkButton(DOWN);
+    switch (downState)
+    {
+        case PUSHED:
+            down = 1;
+            break;
+        case RELEASED:
+            down = 0;
+            break;
+        // Do nothing if state is NO_CHANGE
+    }
+    if(down == 1 && (display_state == 0 || display_state == 1)){
+        down_count++;
+        if(down_count >= longPush){ //button down long push
+            step_count = 0;
+            down_count = 0;
+            down = 0;
+        }
+    } else{
+        down_count = 0;
+    }
+
 
     // State dependent inputs
     switch (display_state)
@@ -229,7 +259,7 @@ void processUserInput(void)
         // This is currently being handled in ADC.c
 
         //DOWN: Commit step goal
-        if (checkButton(DOWN) == PUSHED) {
+        if (downState == PUSHED) {
             step_goal = (getStep_goal() / 100)*100;
             display_state = 0;
         }
@@ -259,6 +289,12 @@ int64_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer){
     return average;
 }
 
+void switchInit(){
+    SysCtlPeripheralEnable(SW1_BUT_PERIPH);
+    GPIOPinTypeGPIOInput(SW1_BUT_PORT_BASE, SW1_BUT_PIN);
+    GPIOPadConfigSet(SW1_BUT_PORT_BASE, SW1_BUT_PIN, GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPD);
+}
+
 
 
 // Main
@@ -283,8 +319,13 @@ int main()
     OLEDInitialise();
     initButtons();
     initADC();
+    switchInit();
 
 
+
+
+    //but_normal[UP] = UP_BUT_NORMAL;
+    //bool but_value =
 
     //allows interupts
     IntMasterEnable();
