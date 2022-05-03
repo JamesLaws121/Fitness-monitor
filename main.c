@@ -43,12 +43,14 @@
 
 //Define constants
 #define STEP_DISTANCE 1.4
-//#define SAMPLE_RATE_HZ 10 // for adc
+#define longPush 10
 
 //Define global variables
 uint8_t display_state;
 uint16_t step_count;
 uint32_t step_goal;
+uint8_t down_count = 0; // used as a counter to tell how long a button is pushed
+uint8_t down = 0;
 
 enum step_units{STEPS=0, PERCENT=1} step_unit;
 enum dist_units{KILOMETRES=0, MILES=1} dist_unit;
@@ -114,6 +116,7 @@ void displayUpdate(void)
         OLEDStringDraw("Step Count     ",0,0);
         if (step_unit == STEPS) {
             lineUpdate("", step_count, "steps", 1);
+
         }
         else if (step_unit == PERCENT) {
             uint8_t step_percent = (step_count * 100) / step_goal;
@@ -160,6 +163,31 @@ void displayUpdate(void)
 //===================================================================================
 void processUserInput(void)
 {
+    //TO DO
+    // reorganize if and switch statements
+
+    uint8_t butState = checkButton(DOWN);
+    switch (butState)
+    {
+    case PUSHED:
+        down = 1;
+        break;
+    case RELEASED:
+        down = 0;
+        break;
+    // Do nothing if state is NO_CHANGE
+    }
+    if(down == 1 && (display_state == 0 || display_state == 1)){
+        down_count++;
+        if(down_count >= longPush){ //button down long push
+            step_count = 0;
+            down_count = 0;
+            down = 0;
+        }
+    } else{
+        down_count = 0;
+    }
+
     //Inputs to check regardless of state
     // left and right buttons should move between different screens
     if (checkButton(LEFT) == PUSHED) {
@@ -186,6 +214,7 @@ void processUserInput(void)
         if (checkButton(UP) == PUSHED) {
             step_unit = !step_unit;
         }
+
         break;
 
     case 1: //1: Displaying total distance
@@ -253,7 +282,6 @@ int main()
     initAccl();
     OLEDInitialise();
     initButtons();
-
     initADC();
 
 
@@ -276,7 +304,7 @@ int main()
         accl_data = getAcclData();
         writeCircBuf(&bufferZ,accl_data.z);
         writeCircBuf(&bufferX,accl_data.x);
-        //writeCircBuf(&bufferY,accl_data.y);
+        writeCircBuf(&bufferY,accl_data.y);
     }
     currentAverage.x = averageData(BUFF_SIZE,&bufferX);
     currentAverage.y = averageData(BUFF_SIZE,&bufferY);
@@ -297,12 +325,12 @@ int main()
         // Obtain accelerometer data and write to circular buffer
         accl_data = getAcclData();
         writeCircBuf(&bufferX,accl_data.x);
-        //writeCircBuf(&bufferY,accl_data.y);
+        writeCircBuf(&bufferY,accl_data.y);
         writeCircBuf(&bufferZ,accl_data.z);
 
         // Take a new running average of acceleration
         currentAverage.x = averageData(BUFF_SIZE,&bufferX);
-        //currentAverage.y = averageData(BUFF_SIZE,&bufferY);
+        currentAverage.y = averageData(BUFF_SIZE,&bufferY);
         currentAverage.z = averageData(BUFF_SIZE,&bufferZ);
 
 
