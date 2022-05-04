@@ -53,7 +53,7 @@
 //Define global variables
 uint8_t display_state;
 uint16_t step_count;
-uint32_t step_goal;
+uint16_t step_goal;
 
 enum step_units{STEPS=0, PERCENT=1} step_unit;
 enum dist_units{KILOMETRES=0, MILES=1} dist_unit;
@@ -81,7 +81,7 @@ void initClock (void)
 //=====================================================================================
 // lineUpdate: Updates a single line on the OLED display.
 //=====================================================================================
-void lineUpdate(char *str1, int16_t num, char *str2, uint8_t charLine)
+void lineUpdate(char *str1, uint16_t num, char *str2, uint8_t charLine)
 {
     char text_buffer[17]; //Display fits 16 characters wide.
 
@@ -89,7 +89,7 @@ void lineUpdate(char *str1, int16_t num, char *str2, uint8_t charLine)
     OLEDStringDraw("                ", 0, charLine);
 
     // Draw a new string to the display.
-    usnprintf(text_buffer, sizeof(text_buffer), "%s %3d %s", str1, num, str2);
+    usnprintf(text_buffer, sizeof(text_buffer), "%s %3u %s", str1, num, str2);
     OLEDStringDraw(text_buffer, 0, charLine);
 }
 
@@ -199,7 +199,6 @@ void processUserInput(void)
         if (checkButton(DOWN) == PUSHED) {
             step_count -= 100;
         }
-
         return;
     } else{
         OLEDStringDraw("                ", 0,3);
@@ -270,6 +269,9 @@ int64_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer){
     return average;
 }
 
+//====================================================================================
+// switchInit:
+//====================================================================================
 void switchInit(){
     SysCtlPeripheralEnable(SW1_BUT_PERIPH);
     GPIOPinTypeGPIOInput(SW1_BUT_PORT_BASE, SW1_BUT_PIN);
@@ -303,12 +305,7 @@ int main()
     switchInit();
 
 
-
-
-    //but_normal[UP] = UP_BUT_NORMAL;
-    //bool but_value =
-
-    //allows interupts
+    //allows interrupts
     IntMasterEnable();
 
     // Setup circular buffer for accelerometer data
