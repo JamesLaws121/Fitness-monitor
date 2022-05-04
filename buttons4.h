@@ -2,7 +2,7 @@
 #define BUTTONS_H_
 
 // *******************************************************
-// buttons4.h
+// buttons.h
 //
 // Support for a set of FOUR specific buttons on the Tiva/Orbit.
 // ENCE361 sample code.
@@ -10,8 +10,11 @@
 // LEFT and RIGHT on the Tiva.
 //
 // P.J. Bones UCECE
-// Last modified:  7.2.2018
+// *******************************************************
+// Modified by D. Beukenholdt and J. Laws
 // 
+// Last Modified 4/5/2022
+//
 // *******************************************************
 
 #include <stdint.h>
@@ -44,6 +47,7 @@ enum butStates {RELEASED = 0, PUSHED, NO_CHANGE};
 #define RIGHT_BUT_NORMAL  true
 
 #define NUM_BUT_POLLS 1
+#define LONG_PUSH 10
 // Debounce algorithm: A state machine is associated with each button.
 // A state change occurs only after NUM_BUT_POLLS consecutive polls have
 // read the pin in the opposite condition, before the state changes and
@@ -70,5 +74,13 @@ updateButtons (void);
 // enumeration butStates, excluding 'NUM_BUTS'. Safe under interrupt.
 uint8_t
 checkButton (uint8_t butName);
+
+// *******************************************************
+// checkLongButton: Function returns true if the button has
+// been pushed for the last  has changed since the last
+// LONG_PUSH calls, otherwise returns false.
+// The argument butName should be one of constants in the
+// enumeration butStates, excluding 'NUM_BUTS'. Safe under interrupt.
+bool checkLongPush(uint8_t butName);
 
 #endif /*BUTTONS_H_*/

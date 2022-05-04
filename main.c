@@ -43,7 +43,6 @@
 
 //Define constants
 #define STEP_DISTANCE 1.4
-#define longPush 10
 //Switch constants
 #define SW1_BUT_PERIPH  SYSCTL_PERIPH_GPIOA
 #define SW1_BUT_PORT_BASE  GPIO_PORTA_BASE
@@ -55,9 +54,6 @@
 uint8_t display_state;
 uint16_t step_count;
 uint32_t step_goal;
-uint8_t down_count = 0; // used as a counter to tell how long a button is pushed
-uint8_t down = 0;
-
 
 enum step_units{STEPS=0, PERCENT=1} step_unit;
 enum dist_units{KILOMETRES=0, MILES=1} dist_unit;
@@ -139,19 +135,19 @@ void displayUpdate(void)
         char text_buffer[17]; //Display fits 16 characters wide.
 
         if (dist_unit == KILOMETRES) {
-            usnprintf(text_buffer, sizeof(text_buffer), "%d.%d km", (distance/1000), (distance % 1000)/10);
+            usnprintf(text_buffer, sizeof(text_buffer), " %d.%d km", (distance/1000), (distance % 1000)/10);
             OLEDStringDraw(text_buffer, 0, 1);
         }
         else if (dist_unit == MILES) {
-            usnprintf(text_buffer, sizeof(text_buffer), "%d.%d miles", (distance/1609), (((distance*1000)/1609) % 1000)/10);
+            usnprintf(text_buffer, sizeof(text_buffer), " %d.%d miles", (distance/1609), (((distance*1000)/1609) % 1000)/10);
             OLEDStringDraw(text_buffer, 0, 1);
         }
         break;
 
     case 2:
         //2: Display the current goal
-        OLEDStringDraw(" Set Step Goal ",0,0);
-        lineUpdate("   ", (getStep_goal() / 100)*100, "steps", 1);
+        OLEDStringDraw("Set Step Goal ",0,0);
+        lineUpdate(" ", (getStep_goal() / 100)*100, "steps", 1);
         break;
 
     default:
@@ -192,10 +188,8 @@ void processUserInput(void)
         }
     }
 
-    /*
-     * Test Mode
-     */
 
+    // Test Mode
     if((GPIOPinRead (SW1_BUT_PORT_BASE, SW1_BUT_PIN) == SW1_BUT_PIN)){
         OLEDStringDraw("TEST MODE    ",0,3);
         if (checkButton(UP) == PUSHED) {
@@ -210,31 +204,6 @@ void processUserInput(void)
         OLEDStringDraw("                ", 0,3);
     }
 
-    /*
-     *   Long down push
-     */
-    uint8_t downState = checkButton(DOWN);
-    switch (downState)
-    {
-        case PUSHED:
-            down = 1;
-            break;
-        case RELEASED:
-            down = 0;
-            break;
-        // Do nothing if state is NO_CHANGE
-    }
-    if(down == 1 && (display_state == 0 || display_state == 1)){
-        down_count++;
-        if(down_count >= longPush){ //button down long push
-            step_count = 0;
-            down_count = 0;
-            down = 0;
-        }
-    } else{
-        down_count = 0;
-    }
-
 
     // State dependent inputs
     switch (display_state)
@@ -245,6 +214,11 @@ void processUserInput(void)
             step_unit = !step_unit;
         }
 
+        //LONG DOWN: Reset step count
+        if (checkLongPush(DOWN) == 1){
+            step_count = 0;
+        }
+
         break;
 
     case 1: //1: Displaying total distance
@@ -252,6 +226,12 @@ void processUserInput(void)
         if (checkButton(UP) == PUSHED) {
             dist_unit = !dist_unit;
         }
+
+        //LONG DOWN: Reset step count
+        if (checkLongPush(DOWN) == 1){
+            step_count = 0;
+        }
+
         break;
 
     case 2: //2: Displaying current goal
@@ -259,7 +239,7 @@ void processUserInput(void)
         // This is currently being handled in ADC.c
 
         //DOWN: Commit step goal
-        if (downState == PUSHED) {
+        if (checkButton(DOWN) == PUSHED) {
             step_goal = (getStep_goal() / 100)*100;
             display_state = 0;
         }

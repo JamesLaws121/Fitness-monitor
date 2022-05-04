@@ -1,6 +1,6 @@
 // *******************************************************
 // 
-// buttons4.c
+// buttons.c
 //
 // Support for a set of FOUR specific buttons on the Tiva/Orbit.
 // ENCE361 sample code.
@@ -11,9 +11,14 @@
 //  the Tiva board) needs special treatment - See PhilsNotesOnTiva.rtf.
 //
 // P.J. Bones UCECE
-// Last modified:  7.2.2018
-// 
+//
 // *******************************************************
+// Modified by D. Beukenholdt and J. Laws
+// 
+// Last Modified 4/5/2022
+//
+// *******************************************************
+
 
 
 #include <stdint.h>
@@ -138,4 +143,59 @@ checkButton (uint8_t butName)
 	}
 	return NO_CHANGE;
 }
+
+
+
+// *******************************************************
+// checkLongButton: Function returns true if the button has
+// been pushed for the last  has changed since the last
+// LONG_PUSH calls, otherwise returns false.
+// The argument butName should be one of constants in the
+// enumeration butStates, excluding 'NUM_BUTS'. Safe under interrupt.
+bool checkLongPush(uint8_t butName)
+{
+    static bool button_state = 0;
+    static uint8_t but_count = 0;
+
+    switch (checkButton(butName))
+    {
+        case PUSHED:
+            button_state = 1;
+            break;
+        case RELEASED:
+            button_state = 0;
+            break;
+    }
+
+    if (button_state == 1) {
+        but_count++;
+    } else {
+        but_count = 0;
+    }
+
+    if (but_count >= LONG_PUSH) {
+        but_count = 0;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
