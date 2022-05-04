@@ -148,33 +148,22 @@ checkButton (uint8_t butName)
 
 // *******************************************************
 // checkLongButton: Function returns true if the button has
-// been pushed for the last  has changed since the last
+// been pushed for the last
 // LONG_PUSH calls, otherwise returns false.
 // The argument butName should be one of constants in the
 // enumeration butStates, excluding 'NUM_BUTS'. Safe under interrupt.
 bool checkLongPush(uint8_t butName)
 {
-    static bool button_state = 0;
-    static uint8_t but_count = 0;
+    static uint8_t but_count[NUM_BUTS];
 
-    switch (checkButton(butName))
-    {
-        case PUSHED:
-            button_state = 1;
-            break;
-        case RELEASED:
-            button_state = 0;
-            break;
-    }
-
-    if (button_state == 1) {
-        but_count++;
+    if (but_state[butName] == 1) {
+        but_count[butName]++;
     } else {
-        but_count = 0;
+        but_count[butName] = 0;
     }
 
-    if (but_count >= LONG_PUSH) {
-        but_count = 0;
+    if (but_count[butName] >= LONG_PUSH) {
+        but_count[butName] = 0;
         return true;
     } else {
         return false;

@@ -77,7 +77,7 @@ checkButton (uint8_t butName);
 
 // *******************************************************
 // checkLongButton: Function returns true if the button has
-// been pushed for the last  has changed since the last
+// been pushed for the last
 // LONG_PUSH calls, otherwise returns false.
 // The argument butName should be one of constants in the
 // enumeration butStates, excluding 'NUM_BUTS'. Safe under interrupt.
