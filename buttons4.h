@@ -47,7 +47,7 @@ enum butStates {RELEASED = 0, PUSHED, NO_CHANGE};
 #define RIGHT_BUT_NORMAL  true
 
 #define NUM_BUT_POLLS 1
-#define LONG_PUSH 10
+#define LONG_PUSH_POLLS 10
 // Debounce algorithm: A state machine is associated with each button.
 // A state change occurs only after NUM_BUT_POLLS consecutive polls have
 // read the pin in the opposite condition, before the state changes and
@@ -76,11 +76,11 @@ uint8_t
 checkButton (uint8_t butName);
 
 // *******************************************************
-// checkLongButton: Function returns true if the button has
+// checkLongPush: Function returns true if the button has
 // been pushed for the last
 // LONG_PUSH calls, otherwise returns false.
 // The argument butName should be one of constants in the
-// enumeration butStates, excluding 'NUM_BUTS'. Safe under interrupt.
+// enumeration butStates, excluding 'NUM_BUTS'.
 bool checkLongPush(uint8_t butName);
 
 #endif /*BUTTONS_H_*/

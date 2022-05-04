@@ -37,7 +37,9 @@
 // *******************************************************
 static bool but_state[NUM_BUTS];	// Corresponds to the electrical state
 static uint8_t but_count[NUM_BUTS];
+static uint8_t but_count_long[NUM_BUTS];
 static bool but_flag[NUM_BUTS];
+static bool but_flag_long[NUM_BUTS];
 static bool but_normal[NUM_BUTS];   // Corresponds to the electrical state
 
 // *******************************************************
@@ -84,7 +86,9 @@ initButtons (void)
 	{
 		but_state[i] = but_normal[i];
 		but_count[i] = 0;
+		but_count_long[i] = 0;
 		but_flag[i] = false;
+		but_flag_long[i] = false;
 	}
 }
 
@@ -124,6 +128,24 @@ updateButtons (void)
         else
         	but_count[i] = 0;
 	}
+
+	// Iterate through buttons checking for long push
+	for (i=0; i < NUM_BUTS; i++)
+        {
+            if (but_state[i] != but_normal[i]){
+                but_count_long[i]++;
+            } else {
+                but_count_long[i] = 0;
+            }
+
+            if (but_count_long[i] >= LONG_PUSH_POLLS) {
+                but_flag_long[i] = 1;
+                but_count_long[i] = 0;
+            } else {
+                but_flag_long[i] = 0;
+            }
+        }
+
 }
 
 // *******************************************************
@@ -147,29 +169,32 @@ checkButton (uint8_t butName)
 
 
 // *******************************************************
-// checkLongButton: Function returns true if the button has
+// checkLongPush: Function returns true if the button has
 // been pushed for the last
 // LONG_PUSH calls, otherwise returns false.
 // The argument butName should be one of constants in the
-// enumeration butStates, excluding 'NUM_BUTS'. Safe under interrupt.
+// enumeration butStates.
+// Passing 'NUM_BUTS' as argument will check all buttons.
 bool checkLongPush(uint8_t butName)
 {
-    static uint8_t but_count[NUM_BUTS];
+    if (butName == NUM_BUTS){
+        uint8_t i;
+        for (i=0; i < NUM_BUTS; i++)
+        {
+            if (but_flag_long[i]){
+                return true;
+            }
+        }
 
-    if (but_state[butName] == 1) {
-        but_count[butName]++;
     } else {
-        but_count[butName] = 0;
+        if (but_flag_long[butName] == 1) {
+            return true;
+        } else {
+            return false;
+        }
     }
-
-    if (but_count[butName] >= LONG_PUSH) {
-        but_count[butName] = 0;
-        return true;
-    } else {
-        return false;
-    }
+    return false;
 }
-
 
 
 
