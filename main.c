@@ -42,7 +42,7 @@
 #include "ADC.h"
 
 //Define constants
-#define STEP_DISTANCE 1.4
+#define STEP_DISTANCE 0.9
 //Switch constants
 #define SW1_BUT_PERIPH  SYSCTL_PERIPH_GPIOA
 #define SW1_BUT_PORT_BASE  GPIO_PORTA_BASE
@@ -197,7 +197,7 @@ void processUserInput(void)
             step_count += 100;
         }
         if (checkButton(DOWN) == PUSHED) {
-            step_count -= 100;
+            step_count -= 500;
         }
         return;
     } else{
