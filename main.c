@@ -101,15 +101,16 @@ void displayUpdate(void)
 {
     // If a state change has occurred, clear the display.
     static uint8_t prev_state = 0;
-    if (display_state != prev_state) {
+    if ((display_state != prev_state) || checkLongPush(NUM_BUTS)) {
         OLEDStringDraw("                ", 0,0);
         OLEDStringDraw("                ", 0,1);
         OLEDStringDraw("                ", 0,2);
         OLEDStringDraw("                ", 0,3);
     }
-
     prev_state = display_state;
 
+    // Causes the display to blank for 1 frame if long push has occurred
+    if (checkLongPush(NUM_BUTS)) {return;}
 
     // Update the display based on the current state.
     switch (display_state)
