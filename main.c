@@ -46,7 +46,7 @@
 //Switch constants
 #define SW1_BUT_PERIPH  SYSCTL_PERIPH_GPIOA
 #define SW1_BUT_PORT_BASE  GPIO_PORTA_BASE
-#define SW1_BUT_PIN  GPIO_PIN_6
+#define SW1_BUT_PIN  GPIO_PIN_7
 #define SW1_BUT_NORMAL  false
 
 
