@@ -24,6 +24,10 @@ typedef struct{
     int16_t pitch;
 } orientation_t;
 
+// *******************************************************
+// Buffer structure
+#include "circBufT.h"
+
 
 //Accl Interrupt Pins
 
@@ -88,5 +92,11 @@ vector3_t convert(vector3_t accl_raw, uint8_t unit);
 char* getAcclUnitStr(int8_t unit_num);
 
 orientation_t getOrientation(vector3_t accl_raw);
+
+int64_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer);
+
+vector3_t getAverage();
+
+void updateAccBuffers();
 
 #endif /*ACC_H_*/

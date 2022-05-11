@@ -22,6 +22,7 @@
 #include "utils/ustdlib.h"
 #include "acc.h"
 #include "i2c_driver.h"
+#include "circBufT.h"
 
 
 /*======================================================
@@ -29,6 +30,13 @@
  written by C.P. Moore
  https://learn.canterbury.ac.nz/pluginfile.php/4291802/mod_folder/content/0/Week_3_lab_code.zip
 ========================================================*/
+
+circBuf_t bufferZ;
+circBuf_t bufferX;
+circBuf_t bufferY;
+uint8_t BUFF_SIZE = 20;
+
+
 void initAccl (void)
 {
     char    toAccl[] = {0, 0};  // parameter, value
@@ -87,6 +95,11 @@ void initAccl (void)
     toAccl[0] = ACCL_OFFSET_Z;
     toAccl[1] = 0x00;
     I2CGenTransmit(toAccl, 1, WRITE, ACCL_ADDR);
+
+
+    initCircBuf(&bufferZ, BUFF_SIZE);
+    initCircBuf(&bufferX, BUFF_SIZE);
+    initCircBuf(&bufferY, BUFF_SIZE);
 }
 
 //======================================================
@@ -204,4 +217,46 @@ orientation_t getOrientation(vector3_t accl_raw)
     }
     return radiansToDegrees(orientation);
 }
+
+vector3_t getAverage(){
+    // Take a new running average of acceleration
+    vector3_t currentAverage;
+    currentAverage.x = averageData(BUFF_SIZE,&bufferX);
+    currentAverage.y = averageData(BUFF_SIZE,&bufferY);
+    currentAverage.z = averageData(BUFF_SIZE,&bufferZ);
+    return currentAverage;
+}
+
+//====================================================================================
+// averageData: returns the mean of the data stored in the given buffer
+//====================================================================================
+int64_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer){
+    int32_t sum = 0;
+    int32_t temp;
+    int32_t average;
+
+    int i;
+    for(i = 0; i < BUFF_SIZE;i++){
+        temp = readCircBuf(buffer);
+        sum += temp;
+    }
+
+    average = ((sum / BUFF_SIZE));
+    return average;
+}
+
+
+//====================================================================================
+// updateAccBuffers: places new data in buffers
+//====================================================================================
+void updateAccBuffers(){
+    // Obtain accelerometer data and write to circular buffer
+    vector3_t accl_data = getAcclData();
+
+    writeCircBuf(&bufferX,accl_data.x);
+    writeCircBuf(&bufferY,accl_data.y);
+    writeCircBuf(&bufferZ,accl_data.z);
+}
+
+
 

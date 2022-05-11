@@ -230,23 +230,7 @@ void processUserInput(void)
 }
 
 
-//====================================================================================
-// averageData: returns the mean of the data stored in the given buffer
-//====================================================================================
-int64_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer){
-    int32_t sum = 0;
-    int32_t temp;
-    int32_t average;
 
-    int i;
-    for(i = 0; i < BUFF_SIZE;i++){
-        temp = readCircBuf(buffer);
-        sum += temp;
-    }
-
-    average = ((sum / BUFF_SIZE));
-    return average;
-}
 
 
 //====================================================================================
@@ -265,6 +249,8 @@ void switchInit(){
 //====================================================================================
 void SysTickIntHandler(void)
 {
+    //
+
     // Trigger an ADC conversion
     ADCProcessorTrigger(ADC0_BASE, 3);
 
@@ -279,7 +265,8 @@ int main()
     // Setup Code (runs once)
     //================================================================================
     //orientation_t orientation;
-    vector3_t accl_data;
+
+    //vector3_t accl_data;
     vector3_t currentAverage;
 
     // Initial values for variables
@@ -287,6 +274,7 @@ int main()
     dist_unit = KILOMETRES;
     step_count = 1500;
     step_goal = 1700;
+    display_state = 0;
 
     // Initialize system clock
     SysCtlClockSet(SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN |SYSCTL_XTAL_16MHZ);
@@ -314,28 +302,16 @@ int main()
     IntMasterEnable();
 
     // Setup circular buffer for accelerometer data
-    circBuf_t bufferZ;
-    circBuf_t bufferX;
-    circBuf_t bufferY;
-    uint8_t BUFF_SIZE = 20;
-    initCircBuf(&bufferZ, BUFF_SIZE);
-    initCircBuf(&bufferX, BUFF_SIZE);
-    initCircBuf(&bufferY, BUFF_SIZE);
+
 
     // Obtain initial set of accelerometer data
     uint8_t i;
     for(i = 0; i < 20; i++){
-        accl_data = getAcclData();
-        writeCircBuf(&bufferZ,accl_data.z);
-        writeCircBuf(&bufferX,accl_data.x);
-        writeCircBuf(&bufferY,accl_data.y);
+        updateAccBuffers();
     }
-    currentAverage.x = averageData(BUFF_SIZE,&bufferX);
-    currentAverage.y = averageData(BUFF_SIZE,&bufferY);
-    currentAverage.z = averageData(BUFF_SIZE,&bufferZ);
-    //orientation = getOrientation(currentAverage);
+    currentAverage = getAverage();
 
-    display_state = 0;
+
 
     //=========================================================================================
     // Main Loop
@@ -346,20 +322,16 @@ int main()
         // TODO: improve main loop to use SYSTICK interrupts for timing or something similar
         SysCtlDelay(SysCtlClockGet () / 32); //delay(s) = 3/magic number
 
-        // Obtain accelerometer data and write to circular buffer
-        accl_data = getAcclData();
-        writeCircBuf(&bufferX,accl_data.x);
-        writeCircBuf(&bufferY,accl_data.y);
-        writeCircBuf(&bufferZ,accl_data.z);
+        //Gets acc data and places in buffers
+        updateAccBuffers();
 
-        // Take a new running average of acceleration
-        currentAverage.x = averageData(BUFF_SIZE,&bufferX);
-        currentAverage.y = averageData(BUFF_SIZE,&bufferY);
-        currentAverage.z = averageData(BUFF_SIZE,&bufferZ);
+        //calculates average
+        currentAverage = getAverage();
 
-
-        // Check buttons for user input and take some action.
+        // Check buttons for user input
         updateButtons();
+
+        //Take actions bases on user input
         processUserInput();
 
         //Update the display
