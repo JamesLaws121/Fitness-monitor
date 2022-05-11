@@ -59,6 +59,13 @@ uint16_t step_goal;
 enum step_units{STEPS=0, PERCENT=1} step_unit;
 enum dist_units{KILOMETRES=0, MILES=1} dist_unit;
 
+bool updtBtnFlag = true;
+bool updtDispFlag = true;
+bool updtUsrProcFlag = true;
+bool updtAccFlag = true;
+bool updtAvgFlag = true;
+bool updtChkBmpFlag = true;
+
 
 
 //=====================================================================================
@@ -249,14 +256,14 @@ void switchInit(){
 //====================================================================================
 void SysTickIntHandler(void)
 {
-    //
-
     // Trigger an ADC conversion
     ADCProcessorTrigger(ADC0_BASE, 3);
 
 }
 
-
+void checkBump(){
+    //
+}
 
 // Main
 int main()
@@ -322,20 +329,30 @@ int main()
         // TODO: improve main loop to use SYSTICK interrupts for timing or something similar
         SysCtlDelay(SysCtlClockGet () / 32); //delay(s) = 3/magic number
 
+        currentAverage = getAverage();
         //Gets acc data and places in buffers
         updateAccBuffers();
 
-        //calculates average
-        currentAverage = getAverage();
+        if(updtChkBmpFlag){
+            // checks for user steps
+            checkBump();
+        }
 
-        // Check buttons for user input
-        updateButtons();
+        if(updtBtnFlag){
+            // Check buttons for user input
+            updateButtons();
+        }
 
-        //Take actions bases on user input
-        processUserInput();
+        if(updtUsrProcFlag){
+            //Take actions bases on user input
+            processUserInput();
+        }
 
-        //Update the display
-        displayUpdate();
+        if(updtDispFlag){
+            //Update the display
+            displayUpdate();
+        }
+
 
     }
 }
