@@ -1,10 +1,10 @@
 /**********************************************************
+ * ENCE361: Personal Fitness monitor project
  *
  * main.c
  *
- * Milestone 1 code which displays acceleration and orientation
  * D. Beukenholdt, J. Laws
- * Last modified: 21 Mar 2022
+ * Last modified: 11 May 2022
  *
  **********************************************************/
 
@@ -18,7 +18,7 @@
 #include "inc/hw_types.h"
 #include "inc/hw_ints.h"
 #include "inc/hw_i2c.h"
-#include "driverlib/pin_map.h" //Needed for pin configure
+#include "driverlib/pin_map.h"
 #include "driverlib/systick.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
@@ -32,8 +32,7 @@
 #include "driverlib/debug.h"
 
 #include "utils/ustdlib.h"
-
-#include "stdlib.h"
+//#include "stdlib.h"
 
 #include "acc.h"
 #include "i2c_driver.h"
@@ -43,6 +42,8 @@
 
 //Define constants
 #define STEP_DISTANCE 0.9
+#define SYSTICK_RATE_HZ 30
+
 //Switch constants
 #define SW1_BUT_PERIPH  SYSCTL_PERIPH_GPIOA
 #define SW1_BUT_PORT_BASE  GPIO_PORTA_BASE
@@ -58,24 +59,6 @@ uint16_t step_goal;
 enum step_units{STEPS=0, PERCENT=1} step_unit;
 enum dist_units{KILOMETRES=0, MILES=1} dist_unit;
 
-
-void initClock (void)
-{
-    // Set the clock rate
-    SysCtlClockSet(SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN |
-                   SYSCTL_XTAL_16MHZ);
-
-    // Set up the period for the SysTick timer.  The SysTick timer period is
-    // set as a function of the system clock.
-    //SysTickPeriodSet(SysCtlClockGet() / SAMPLE_RATE_HZ);
-    //
-    // Register the interrupt handler
-    //SysTickIntRegister(SysTickIntHandler);
-    //
-    // Enable interrupt and device
-    //SysTickIntEnable();
-    //SysTickEnable();
-}
 
 
 //=====================================================================================
@@ -148,7 +131,7 @@ void displayUpdate(void)
     case 2:
         //2: Display the current goal
         OLEDStringDraw("Set Step Goal ",0,0);
-        lineUpdate(" ", (getStep_goal() / 100)*100, "steps", 1);
+        lineUpdate(" ", (getADCMean() / 100)*100, "steps", 1);
         break;
 
     default:
@@ -167,10 +150,6 @@ void displayUpdate(void)
 //===================================================================================
 void processUserInput(void)
 {
-    //TO DO
-    // reorganize if and switch statements
-
-
     //Inputs to check regardless of state and test mode
     // left and right buttons should move between different screens
     if (checkButton(LEFT) == PUSHED) {
@@ -240,7 +219,7 @@ void processUserInput(void)
 
         //DOWN: Commit step goal
         if (checkButton(DOWN) == PUSHED) {
-            step_goal = (getStep_goal() / 100)*100;
+            step_goal = (getADCMean() / 100)*100;
             display_state = 0;
         }
         break;
@@ -269,6 +248,7 @@ int64_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer){
     return average;
 }
 
+
 //====================================================================================
 // switchInit:
 //====================================================================================
@@ -276,6 +256,18 @@ void switchInit(){
     SysCtlPeripheralEnable(SW1_BUT_PERIPH);
     GPIOPinTypeGPIOInput(SW1_BUT_PORT_BASE, SW1_BUT_PIN);
     GPIOPadConfigSet(SW1_BUT_PORT_BASE, SW1_BUT_PIN, GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPD);
+}
+
+
+
+//====================================================================================
+// SysTick interrupt handler
+//====================================================================================
+void SysTickIntHandler(void)
+{
+    // Trigger an ADC conversion
+    ADCProcessorTrigger(ADC0_BASE, 3);
+
 }
 
 
@@ -296,13 +288,26 @@ int main()
     step_count = 1500;
     step_goal = 1700;
 
+    // Initialize system clock
+    SysCtlClockSet(SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN |SYSCTL_XTAL_16MHZ);
+
     // Initialize required modules
-    initClock();
     initAccl();
     OLEDInitialise();
     initButtons();
     initADC();
     switchInit();
+
+    // Set up the period for the SysTick timer.  The SysTick timer period is
+    // set as a function of the system clock.
+    SysTickPeriodSet(SysCtlClockGet() / SYSTICK_RATE_HZ);
+    //
+    // Register the interrupt handler
+    SysTickIntRegister(SysTickIntHandler);
+    //
+    // Enable interrupt and device
+    SysTickIntEnable();
+    SysTickEnable();
 
 
     //allows interrupts
