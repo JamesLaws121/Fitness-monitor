@@ -47,7 +47,7 @@ enum butStates {RELEASED = 0, PUSHED, NO_CHANGE};
 #define RIGHT_BUT_NORMAL  true
 
 #define NUM_BUT_POLLS 1
-#define LONG_PUSH_POLLS 11
+#define LONG_PUSH_POLLS 14
 // Debounce algorithm: A state machine is associated with each button.
 // A state change occurs only after NUM_BUT_POLLS consecutive polls have
 // read the pin in the opposite condition, before the state changes and

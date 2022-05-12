@@ -4,7 +4,7 @@
  * main.c
  *
  * D. Beukenholdt, J. Laws
- * Last modified: 11 May 2022
+ * Last modified: 12 May 2022
  *
  **********************************************************/
 
@@ -43,12 +43,18 @@
 //Define constants
 #define STEP_DISTANCE 0.9
 #define SYSTICK_RATE_HZ 30
+#define DISPLAY_UPDATE_HZ 6
+#define USER_INPUT_RATE_HZ 12
 
 //Switch constants
 #define SW1_BUT_PERIPH  SYSCTL_PERIPH_GPIOA
 #define SW1_BUT_PORT_BASE  GPIO_PORTA_BASE
 #define SW1_BUT_PIN  GPIO_PIN_7
 #define SW1_BUT_NORMAL  false
+
+//LED constants
+#define LED1 GPIO_PIN_6
+#define LED2 GPIO_PIN_7
 
 
 //Define global variables
@@ -59,12 +65,10 @@ uint16_t step_goal;
 enum step_units{STEPS=0, PERCENT=1} step_unit;
 enum dist_units{KILOMETRES=0, MILES=1} dist_unit;
 
-bool updtBtnFlag = true;
-bool updtDispFlag = true;
-bool updtUsrProcFlag = true;
-bool updtAccFlag = true;
-bool updtAvgFlag = true;
-bool updtChkBmpFlag = true;
+//Flags
+bool display_update_flag = 0;
+bool user_input_flag = 0;
+bool skip_frame_flag = 0;
 
 
 
@@ -91,7 +95,7 @@ void displayUpdate(void)
 {
     // If a state change has occurred, clear the display.
     static uint8_t prev_state = 0;
-    if ((display_state != prev_state) || checkLongPush(NUM_BUTS)) {
+    if ((display_state != prev_state) || skip_frame_flag) {
         OLEDStringDraw("                ", 0,0);
         OLEDStringDraw("                ", 0,1);
         OLEDStringDraw("                ", 0,2);
@@ -99,8 +103,11 @@ void displayUpdate(void)
     }
     prev_state = display_state;
 
-    // Causes the display to blank for 1 frame if long push has occurred
-    if (checkLongPush(NUM_BUTS)) {return;}
+    // Leave the display blank and reset skip_frame_flag if skip_frame_flag is true
+    if (skip_frame_flag) {
+        skip_frame_flag = 0;
+        return;
+    }
 
     // Update the display based on the current state.
     switch (display_state)
@@ -139,6 +146,8 @@ void displayUpdate(void)
         //2: Display the current goal
         OLEDStringDraw("Set Step Goal ",0,0);
         lineUpdate(" ", (getADCMean() / 100)*100, "steps", 1);
+        OLEDStringDraw("Current Goal ",0,2);
+        lineUpdate(" ", step_goal, "steps", 3);
         break;
 
     default:
@@ -175,10 +184,13 @@ void processUserInput(void)
         }
     }
 
+    // Acknowledge a long push of any button
+    if (checkLongPush(NUM_BUTS)) {skip_frame_flag = 1;}
 
     // Test Mode
     if((GPIOPinRead (SW1_BUT_PORT_BASE, SW1_BUT_PIN) == SW1_BUT_PIN)){
-        OLEDStringDraw("TEST MODE    ",0,3);
+        GPIOPinWrite(GPIO_PORTC_BASE, LED1, LED1);
+        GPIOPinWrite(GPIO_PORTC_BASE, LED2, LED2);
         if (checkButton(UP) == PUSHED) {
             step_count += 100;
         }
@@ -187,7 +199,8 @@ void processUserInput(void)
         }
         return;
     } else{
-        OLEDStringDraw("                ", 0,3);
+        GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, 0x00);
+        GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_7, 0x00);
     }
 
 
@@ -241,7 +254,7 @@ void processUserInput(void)
 
 
 //====================================================================================
-// switchInit:
+// switchInit: Initializes the debug switch
 //====================================================================================
 void switchInit(){
     SysCtlPeripheralEnable(SW1_BUT_PERIPH);
@@ -249,21 +262,35 @@ void switchInit(){
     GPIOPadConfigSet(SW1_BUT_PORT_BASE, SW1_BUT_PIN, GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPD);
 }
 
-
-
 //====================================================================================
 // SysTick interrupt handler
 //====================================================================================
 void SysTickIntHandler(void)
 {
-    // Trigger an ADC conversion
+    static uint8_t user_input_delay = (SYSTICK_RATE_HZ / USER_INPUT_RATE_HZ);
+    static uint8_t display_update_delay = SYSTICK_RATE_HZ / DISPLAY_UPDATE_HZ + 1; //+1 offset to prevent display update and user input being called in the same tick
+
+    // Trigger an ADC conversion for potentiometer
     ADCProcessorTrigger(ADC0_BASE, 3);
 
+    // get accelerometer data
+    updateAccBuffers();
+
+    //Set scheduling flags
+    display_update_delay--;
+    if (display_update_delay == 0) {
+        display_update_flag = 1;
+        display_update_delay = SYSTICK_RATE_HZ / DISPLAY_UPDATE_HZ;
+    }
+
+    user_input_delay--;
+    if (user_input_delay == 0){
+        user_input_flag = 1;
+        user_input_delay = SYSTICK_RATE_HZ / USER_INPUT_RATE_HZ;
+    }
+
 }
 
-void checkBump(){
-    //
-}
 
 // Main
 int main()
@@ -293,23 +320,16 @@ int main()
     initADC();
     switchInit();
 
-    // Set up the period for the SysTick timer.  The SysTick timer period is
-    // set as a function of the system clock.
+    // Set up the period for the SysTick timer
     SysTickPeriodSet(SysCtlClockGet() / SYSTICK_RATE_HZ);
-    //
+
     // Register the interrupt handler
     SysTickIntRegister(SysTickIntHandler);
-    //
-    // Enable interrupt and device
+
+    // Enable interrupts
     SysTickIntEnable();
     SysTickEnable();
-
-
-    //allows interrupts
     IntMasterEnable();
-
-    // Setup circular buffer for accelerometer data
-
 
     // Obtain initial set of accelerometer data
     uint8_t i;
@@ -318,6 +338,12 @@ int main()
     }
     currentAverage = getAverage();
 
+    // Initialize LEDs
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+    GPIOPadConfigSet(GPIO_PORTC_BASE, LED1, GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPD);
+    GPIOPadConfigSet(GPIO_PORTC_BASE, LED2, GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPD);
+    GPIODirModeSet(GPIO_PORTC_BASE, LED1, GPIO_DIR_MODE_OUT);
+    GPIODirModeSet(GPIO_PORTC_BASE, LED2, GPIO_DIR_MODE_OUT);
 
 
     //=========================================================================================
@@ -325,34 +351,18 @@ int main()
     //=========================================================================================
     while (1)
     {
-        // Set the program speed using a magic number
-        // TODO: improve main loop to use SYSTICK interrupts for timing or something similar
-        SysCtlDelay(SysCtlClockGet () / 32); //delay(s) = 3/magic number
-
-        currentAverage = getAverage();
-        //Gets acc data and places in buffers
-        updateAccBuffers();
-
-        if(updtChkBmpFlag){
-            // checks for user steps
-            checkBump();
-        }
-
-        if(updtBtnFlag){
-            // Check buttons for user input
+        if(user_input_flag == 1){
+            //Get input from user and take some action
             updateButtons();
-        }
-
-        if(updtUsrProcFlag){
-            //Take actions bases on user input
             processUserInput();
+            user_input_flag = 0;
         }
 
-        if(updtDispFlag){
+        if(display_update_flag == 1){
             //Update the display
             displayUpdate();
+            display_update_flag = 0;
         }
-
 
     }
 }
