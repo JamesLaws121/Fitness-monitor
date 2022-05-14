@@ -221,6 +221,7 @@ orientation_t getOrientation(vector3_t accl_raw)
 vector3_t getAverage(){
     // Take a new running average of acceleration
     vector3_t currentAverage;
+
     currentAverage.x = averageData(BUFF_SIZE,&bufferX);
     currentAverage.y = averageData(BUFF_SIZE,&bufferY);
     currentAverage.z = averageData(BUFF_SIZE,&bufferZ);

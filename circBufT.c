@@ -21,12 +21,12 @@
 uint32_t *
 initCircBuf (circBuf_t *buffer, uint32_t size)
 {
-	buffer->windex = 0;
-	buffer->rindex = 0;
-	buffer->size = size;
-	buffer->data = 
+    buffer->windex = 0;
+    buffer->rindex = 0;
+    buffer->size = size;
+    buffer->data =
         (uint32_t *) calloc (size, sizeof(uint32_t));
-	return buffer->data;
+    return buffer->data;
 }
    // Note use of calloc() to clear contents.
 
@@ -36,10 +36,10 @@ initCircBuf (circBuf_t *buffer, uint32_t size)
 void
 writeCircBuf (circBuf_t *buffer, uint32_t entry)
 {
-	buffer->data[buffer->windex] = entry;
-	buffer->windex++;
-	if (buffer->windex >= buffer->size)
-	   buffer->windex = 0;
+    buffer->data[buffer->windex] = entry;
+    buffer->windex++;
+    if (buffer->windex >= buffer->size)
+       buffer->windex = 0;
 }
 
 // *******************************************************
@@ -49,12 +49,12 @@ writeCircBuf (circBuf_t *buffer, uint32_t entry)
 uint32_t
 readCircBuf (circBuf_t *buffer)
 {
-	uint32_t entry;
-	
-	entry = buffer->data[buffer->rindex];
-	buffer->rindex++;
-	if (buffer->rindex >= buffer->size)
-	   buffer->rindex = 0;
+    uint32_t entry;
+
+    entry = buffer->data[buffer->rindex];
+    buffer->rindex++;
+    if (buffer->rindex >= buffer->size)
+       buffer->rindex = 0;
     return entry;
 }
 
@@ -65,10 +65,10 @@ readCircBuf (circBuf_t *buffer)
 void
 freeCircBuf (circBuf_t * buffer)
 {
-	buffer->windex = 0;
-	buffer->rindex = 0;
-	buffer->size = 0;
-	free (buffer->data);
-	buffer->data = NULL;
+    buffer->windex = 0;
+    buffer->rindex = 0;
+    buffer->size = 0;
+    free (buffer->data);
+    buffer->data = NULL;
 }
 

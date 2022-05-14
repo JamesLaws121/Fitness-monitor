@@ -18,6 +18,8 @@
 #include "inc/hw_types.h"
 #include "inc/hw_ints.h"
 #include "inc/hw_i2c.h"
+
+
 #include "driverlib/pin_map.h"
 #include "driverlib/systick.h"
 #include "driverlib/sysctl.h"
@@ -42,9 +44,11 @@
 
 //Define constants
 #define STEP_DISTANCE 0.9
+
 #define SYSTICK_RATE_HZ 30
 #define DISPLAY_UPDATE_HZ 6
 #define USER_INPUT_RATE_HZ 12
+#define STEP_INPUT_RATE_HZ 8
 
 //Switch constants
 #define SW1_BUT_PERIPH  SYSCTL_PERIPH_GPIOA
@@ -69,6 +73,7 @@ enum dist_units{KILOMETRES=0, MILES=1} dist_unit;
 bool display_update_flag = 0;
 bool user_input_flag = 0;
 bool skip_frame_flag = 0;
+bool step_update_flag = 0;
 
 
 
@@ -269,12 +274,13 @@ void SysTickIntHandler(void)
 {
     static uint8_t user_input_delay = (SYSTICK_RATE_HZ / USER_INPUT_RATE_HZ);
     static uint8_t display_update_delay = SYSTICK_RATE_HZ / DISPLAY_UPDATE_HZ + 1; //+1 offset to prevent display update and user input being called in the same tick
+    static uint8_t step_update_delay = (SYSTICK_RATE_HZ / STEP_INPUT_RATE_HZ);
 
     // Trigger an ADC conversion for potentiometer
     ADCProcessorTrigger(ADC0_BASE, 3);
 
     // get accelerometer data
-    updateAccBuffers();
+    //updateAccBuffers();
 
     //Set scheduling flags
     display_update_delay--;
@@ -289,8 +295,22 @@ void SysTickIntHandler(void)
         user_input_delay = SYSTICK_RATE_HZ / USER_INPUT_RATE_HZ;
     }
 
+    step_update_delay--;
+    if(step_update_delay == 0){
+        step_update_flag = 1;
+        step_update_delay = SYSTICK_RATE_HZ / USER_INPUT_RATE_HZ;
+    }
+
 }
 
+void checkBump(){
+    vector3_t currentAverage = getAverage();
+
+
+    lineUpdate("", currentAverage.x, "x", 1);
+    lineUpdate("", currentAverage.y, "y", 2);
+    lineUpdate("", currentAverage.z, "z", 3);
+}
 
 // Main
 int main()
@@ -336,6 +356,7 @@ int main()
     for(i = 0; i < 20; i++){
         updateAccBuffers();
     }
+
     currentAverage = getAverage();
 
     // Initialize LEDs
@@ -351,6 +372,7 @@ int main()
     //=========================================================================================
     while (1)
     {
+
         if(user_input_flag == 1){
             //Get input from user and take some action
             updateButtons();
@@ -360,8 +382,14 @@ int main()
 
         if(display_update_flag == 1){
             //Update the display
-            displayUpdate();
+            //displayUpdate();
             display_update_flag = 0;
+        }
+
+        if(step_update_flag == 1){
+            updateAccBuffers();
+            checkBump();
+            step_update_flag = 0;
         }
 
     }
