@@ -308,14 +308,15 @@ void checkBump(){
     vector3_t currentAverage = getAverage();
     //currentAverage = convert(currentAverage, 2); // convert data to ms^-2
     //average acc readings
-    //lineUpdate("", currentAverage.x, "x", 1);
-    //lineUpdate("", currentAverage.y, "y", 2);
-    //lineUpdate("", currentAverage.z, "z", 3);
-    currentAverage.z - 240;
+
+    lineUpdate("", sqrt(currentAverage.x*currentAverage.x), "x", 1);
+    lineUpdate("", sqrt(currentAverage.y*currentAverage.y), "y", 2);
+    lineUpdate("", sqrt(currentAverage.z*currentAverage.z), "z", 3);
+    currentAverage.z -= 240;
     uint32_t magnitude = sqrt((currentAverage.x*currentAverage.x + currentAverage.y*currentAverage.y
             + currentAverage.z*currentAverage.z));
 
-    //magnitude -= 9; // removing gravity
+    magnitude -= 9; // removing gravity
     lineUpdate("", magnitude, "mag", 1);
 
     static int threshold = 4;
@@ -330,11 +331,6 @@ void checkBump(){
 
 // Main
 int main()
-
-
-
-
-
 {
     //================================================================================
     // Setup Code (runs once)
