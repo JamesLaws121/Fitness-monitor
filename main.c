@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
@@ -305,15 +306,35 @@ void SysTickIntHandler(void)
 
 void checkBump(){
     vector3_t currentAverage = getAverage();
+    //currentAverage = convert(currentAverage, 2); // convert data to ms^-2
+    //average acc readings
+    //lineUpdate("", currentAverage.x, "x", 1);
+    //lineUpdate("", currentAverage.y, "y", 2);
+    //lineUpdate("", currentAverage.z, "z", 3);
+    currentAverage.z - 240;
+    uint32_t magnitude = sqrt((currentAverage.x*currentAverage.x + currentAverage.y*currentAverage.y
+            + currentAverage.z*currentAverage.z));
 
+    //magnitude -= 9; // removing gravity
+    lineUpdate("", magnitude, "mag", 1);
 
-    lineUpdate("", currentAverage.x, "x", 1);
-    lineUpdate("", currentAverage.y, "y", 2);
-    lineUpdate("", currentAverage.z, "z", 3);
+    static int threshold = 4;
+    static uint8_t cooldown_delay = 2;
+
+    cooldown_delay--;
+    if(magnitude > threshold && cooldown_delay == 0){
+        step_count++;
+        cooldown_delay = 2;
+    }
 }
 
 // Main
 int main()
+
+
+
+
+
 {
     //================================================================================
     // Setup Code (runs once)

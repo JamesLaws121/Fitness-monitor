@@ -143,7 +143,7 @@ vector3_t convert(vector3_t accl_raw, uint8_t unit){
             accl_out.z = ((accl_raw.z * 100) / 256) * 10;
             break;
         case 2:
-            // raw --> ms^-1
+            // raw --> ms^-2
             accl_out.x = (accl_raw.x * 9.81) / 256;
             accl_out.y = (accl_raw.y * 9.81) / 256;
             accl_out.z = (accl_raw.z * 9.81) / 256;
@@ -231,7 +231,7 @@ vector3_t getAverage(){
 //====================================================================================
 // averageData: returns the mean of the data stored in the given buffer
 //====================================================================================
-int64_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer){
+int32_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer){
     int32_t sum = 0;
     int32_t temp;
     int32_t average;

@@ -93,7 +93,7 @@ char* getAcclUnitStr(int8_t unit_num);
 
 orientation_t getOrientation(vector3_t accl_raw);
 
-int64_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer);
+int32_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer);
 
 vector3_t getAverage();
 
