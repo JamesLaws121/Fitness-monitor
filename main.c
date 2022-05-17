@@ -330,10 +330,11 @@ void checkBump(){
 
 
     uint16_t magnitude = sqrt((currentAverage.x*currentAverage.x + currentAverage.y*currentAverage.y
-            + currentAverage.z*currentAverage.z));
+            + currentAverage.z*currentAverage.z));  // Current magnitude
 
-    int16_t diffMagnitude = (magnitude-average_magnitude);
-    if(averages_counted >= 100){ // uses a rolling average over 10 magnitude samples
+    int16_t diffMagnitude = (magnitude-average_magnitude); //differance between current magnitude and average
+
+    if(averages_counted >= 100){ // uses a rolling average over 100 magnitude samples
         averages_counted++;
         magnitude_sum += magnitude;
         average_magnitude = (magnitude_sum/averages_counted);
@@ -360,7 +361,7 @@ void checkBump(){
     //lineUpdate("",abs(diffMagnitude), "diff", 3);
 
 
-    static int threshold = 3;
+    static int threshold = 5;
 
 
     step_cooldown--;
