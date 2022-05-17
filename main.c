@@ -46,7 +46,10 @@
 //Define constants
 #define STEP_DISTANCE 0.9
 
+//Step counting constants
 #define STEP_COOLDOWN 5
+#define MAGNITUDE_SAMPLES 1000
+#define PEAK_THRESHOLD 4
 
 #define SYSTICK_RATE_HZ 30
 #define DISPLAY_UPDATE_HZ 4
@@ -317,52 +320,35 @@ void SysTickIntHandler(void)
 
 }
 
+//====================================================================================
+// step detection
+//====================================================================================
 void checkBump(){
-    vector3_t currentAverage = getAverage();
-    //currentAverage = convert(currentAverage, 2); // convert data to ms^-2
-    //average acc readings
+    static int threshold = PEAK_THRESHOLD; // threshold used for peak detection
 
-    //lineUpdate("", sqrt(currentAverage.x*currentAverage.x), "x", 1);
-    //lineUpdate("", sqrt(currentAverage.y*currentAverage.y), "y", 2);
-    //lineUpdate("", sqrt(currentAverage.z*currentAverage.z), "z", 3);
-    //currentAverage.z -= 240;
-
-
+    vector3_t currentAverage = getAverage(); // gets the average x,y,z data
 
     uint16_t magnitude = sqrt((currentAverage.x*currentAverage.x + currentAverage.y*currentAverage.y
             + currentAverage.z*currentAverage.z));  // Current magnitude
 
-    int16_t diffMagnitude = (magnitude-average_magnitude); //differance between current magnitude and average
 
-    if(averages_counted >= 100){ // uses a rolling average over 100 magnitude samples
-        averages_counted++;
-        magnitude_sum += magnitude;
-        average_magnitude = (magnitude_sum/averages_counted);
-        averages_counted = 1;
+    int16_t diffMagnitude = (magnitude-average_magnitude); //difference between current magnitude and average magnitude
 
-    } else if(averages_counted == 1){
-        magnitude_sum = magnitude;
+    // uses a moving average to find peaks
+    if(averages_counted == 1){
+        magnitude_sum = magnitude; //First sample
         averages_counted++;
         diffMagnitude = 0;
-
     } else {
         magnitude_sum += magnitude;
         average_magnitude = (magnitude_sum/averages_counted);
         averages_counted++;
-
     }
 
-
-    //uint32_t magnitude = abs(currentAverage.x) + abs(currentAverage.y) + abs(currentAverage.z);
-    //magnitude -= 9; // removing gravity
-    //lineUpdate("", magnitude, "mag", 1);
-    //lineUpdate("", average_magnitude, "AVG mag", 2);
-    //lineUpdate("", step_cooldown, "cooldown", 2);
-    //lineUpdate("",abs(diffMagnitude), "diff", 3);
-
-
-    static int threshold = 5;
-
+    if(averages_counted >= MAGNITUDE_SAMPLES && step_cooldown == STEP_COOLDOWN){
+            // Restarts  average during step cool down to avoid missing steps
+        averages_counted = 1;
+    }
 
     step_cooldown--;
     if(diffMagnitude > threshold && step_cooldown <= 0){
