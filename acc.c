@@ -96,10 +96,10 @@ void initAccl (void)
     toAccl[1] = 0x00;
     I2CGenTransmit(toAccl, 1, WRITE, ACCL_ADDR);
 
-
+    initCircBuf(&bufferY, BUFF_SIZE);
     initCircBuf(&bufferZ, BUFF_SIZE);
     initCircBuf(&bufferX, BUFF_SIZE);
-    initCircBuf(&bufferY, BUFF_SIZE);
+
 }
 
 //======================================================
@@ -254,9 +254,9 @@ void updateAccBuffers(){
     // Obtain accelerometer data and write to circular buffer
     vector3_t accl_data = getAcclData();
 
-    writeCircBuf(&bufferX,accl_data.x);
-    writeCircBuf(&bufferY,accl_data.y);
-    writeCircBuf(&bufferZ,accl_data.z);
+    writeCircBuf(&bufferX,abs(accl_data.x));
+    writeCircBuf(&bufferY,abs(accl_data.y));
+    writeCircBuf(&bufferZ,abs(accl_data.z));
 }
 
 

@@ -46,10 +46,13 @@
 //Define constants
 #define STEP_DISTANCE 0.9
 
+#define STEP_COOLDOWN 5
+
 #define SYSTICK_RATE_HZ 30
-#define DISPLAY_UPDATE_HZ 6
-#define USER_INPUT_RATE_HZ 12
-#define STEP_INPUT_RATE_HZ 8
+#define DISPLAY_UPDATE_HZ 4
+#define USER_INPUT_RATE_HZ 10
+#define STEP_INPUT_RATE_HZ 6
+#define ACC_UPDATE_HZ 15
 
 //Switch constants
 #define SW1_BUT_PERIPH  SYSCTL_PERIPH_GPIOA
@@ -66,6 +69,10 @@
 uint8_t display_state;
 uint16_t step_count;
 uint16_t step_goal;
+int16_t step_cooldown = 0;
+uint16_t magnitude_sum;
+uint16_t average_magnitude;
+uint8_t averages_counted = 1;
 
 enum step_units{STEPS=0, PERCENT=1} step_unit;
 enum dist_units{KILOMETRES=0, MILES=1} dist_unit;
@@ -75,7 +82,7 @@ bool display_update_flag = 0;
 bool user_input_flag = 0;
 bool skip_frame_flag = 0;
 bool step_update_flag = 0;
-
+bool acc_input_flag = 0;
 
 
 //=====================================================================================
@@ -276,12 +283,18 @@ void SysTickIntHandler(void)
     static uint8_t user_input_delay = (SYSTICK_RATE_HZ / USER_INPUT_RATE_HZ);
     static uint8_t display_update_delay = SYSTICK_RATE_HZ / DISPLAY_UPDATE_HZ + 1; //+1 offset to prevent display update and user input being called in the same tick
     static uint8_t step_update_delay = (SYSTICK_RATE_HZ / STEP_INPUT_RATE_HZ);
+    static uint8_t acc_update_delay = SYSTICK_RATE_HZ / ACC_UPDATE_HZ;
 
     // Trigger an ADC conversion for potentiometer
     ADCProcessorTrigger(ADC0_BASE, 3);
 
     // get accelerometer data
-    //updateAccBuffers();
+    acc_update_delay--;
+    if (acc_update_delay == 0) {
+        acc_input_flag = 1;
+        acc_update_delay = SYSTICK_RATE_HZ / ACC_UPDATE_HZ;
+    }
+
 
     //Set scheduling flags
     display_update_delay--;
@@ -309,25 +322,55 @@ void checkBump(){
     //currentAverage = convert(currentAverage, 2); // convert data to ms^-2
     //average acc readings
 
-    lineUpdate("", sqrt(currentAverage.x*currentAverage.x), "x", 1);
-    lineUpdate("", sqrt(currentAverage.y*currentAverage.y), "y", 2);
-    lineUpdate("", sqrt(currentAverage.z*currentAverage.z), "z", 3);
-    currentAverage.z -= 240;
-    uint32_t magnitude = sqrt((currentAverage.x*currentAverage.x + currentAverage.y*currentAverage.y
+    //lineUpdate("", sqrt(currentAverage.x*currentAverage.x), "x", 1);
+    //lineUpdate("", sqrt(currentAverage.y*currentAverage.y), "y", 2);
+    //lineUpdate("", sqrt(currentAverage.z*currentAverage.z), "z", 3);
+    //currentAverage.z -= 240;
+
+
+
+    uint16_t magnitude = sqrt((currentAverage.x*currentAverage.x + currentAverage.y*currentAverage.y
             + currentAverage.z*currentAverage.z));
 
-    magnitude -= 9; // removing gravity
-    lineUpdate("", magnitude, "mag", 1);
+    int16_t diffMagnitude = (magnitude-average_magnitude);
+    if(averages_counted >= 100){ // uses a rolling average over 10 magnitude samples
+        averages_counted++;
+        magnitude_sum += magnitude;
+        average_magnitude = (magnitude_sum/averages_counted);
+        averages_counted = 1;
 
-    static int threshold = 4;
-    static uint8_t cooldown_delay = 2;
+    } else if(averages_counted == 1){
+        magnitude_sum = magnitude;
+        averages_counted++;
+        diffMagnitude = 0;
 
-    cooldown_delay--;
-    if(magnitude > threshold && cooldown_delay == 0){
+    } else {
+        magnitude_sum += magnitude;
+        average_magnitude = (magnitude_sum/averages_counted);
+        averages_counted++;
+
+    }
+
+
+    //uint32_t magnitude = abs(currentAverage.x) + abs(currentAverage.y) + abs(currentAverage.z);
+    //magnitude -= 9; // removing gravity
+    //lineUpdate("", magnitude, "mag", 1);
+    //lineUpdate("", average_magnitude, "AVG mag", 2);
+    //lineUpdate("", step_cooldown, "cooldown", 2);
+    //lineUpdate("",abs(diffMagnitude), "diff", 3);
+
+
+    static int threshold = 3;
+
+
+    step_cooldown--;
+    if(diffMagnitude > threshold && step_cooldown <= 0){
         step_count++;
-        cooldown_delay = 2;
+        step_cooldown = STEP_COOLDOWN;
     }
 }
+
+
 
 // Main
 int main()
@@ -340,11 +383,13 @@ int main()
     //vector3_t accl_data;
     vector3_t currentAverage;
 
+
+
     // Initial values for variables
     step_unit = STEPS;
     dist_unit = KILOMETRES;
-    step_count = 1500;
-    step_goal = 1700;
+    step_count = 0;
+    step_goal = 0;
     display_state = 0;
 
     // Initialize system clock
@@ -399,16 +444,18 @@ int main()
 
         if(display_update_flag == 1){
             //Update the display
-            //displayUpdate();
+            displayUpdate();
             display_update_flag = 0;
         }
 
         if(step_update_flag == 1){
-            updateAccBuffers();
             checkBump();
             step_update_flag = 0;
         }
-
+        if(acc_input_flag == 1){
+            updateAccBuffers();
+            acc_input_flag = 0;
+        }
     }
 }
 
