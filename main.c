@@ -58,11 +58,6 @@
 //Define global variables
 uint16_t step_count;
 uint16_t step_goal;
-int16_t step_cooldown = 20;
-uint16_t magnitude_sum;
-uint16_t average_magnitude;
-uint8_t averages_counted = 1;
-
 
 
 //Flags
