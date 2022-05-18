@@ -1,9 +1,11 @@
-/*
+/**************************************
  * display.c
  *
- *  Created on: May 18, 2022
- *      Author: J.Laws, D. Beukenholdt
- */
+ * Created on: May 18, 2022
+ *     Author: J.Laws, D. Beukenholdt
+ *
+ * Last modified: 18 May 2022
+ **************************************/
 
 #include <stdint.h>
 #include <stdbool.h>

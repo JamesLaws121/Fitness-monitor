@@ -30,7 +30,7 @@
 #include "driverlib/adc.h"
 #include "driverlib/debug.h"
 #include "utils/ustdlib.h"
-
+#include "driverlib/interrupt.h"
 
 #include "acc.h"
 #include "i2c_driver.h"
@@ -82,6 +82,9 @@ void SysTickIntHandler(void)
     // Trigger an ADC conversion for potentiometer
     ADCProcessorTrigger(ADC0_BASE, 3);
 
+
+    //Set scheduling flags
+
     // get accelerometer data
     acc_update_delay--;
     if (acc_update_delay == 0) {
@@ -90,19 +93,21 @@ void SysTickIntHandler(void)
     }
 
 
-    //Set scheduling flags
+    //Update the display
     display_update_delay--;
     if (display_update_delay == 0) {
         display_update_flag = 1;
         display_update_delay = SYSTICK_RATE_HZ / DISPLAY_UPDATE_HZ;
     }
 
+    //Retrieve and process user
     user_input_delay--;
     if (user_input_delay == 0){
         user_input_flag = 1;
         user_input_delay = SYSTICK_RATE_HZ / USER_INPUT_RATE_HZ;
     }
 
+    //Checks for user steps
     step_update_delay--;
     if(step_update_delay == 0){
         step_update_flag = 1;
@@ -112,9 +117,9 @@ void SysTickIntHandler(void)
 }
 
 
-
-
-// Main
+//================================================================================
+//   Main
+//================================================================================
 int main()
 {
     //================================================================================
@@ -169,6 +174,7 @@ int main()
         }
 
         if(step_update_flag == 1){
+            //Check for steps
             if(checkBump()) {
                 step_count++;
             }
@@ -176,6 +182,7 @@ int main()
         }
 
         if(acc_input_flag == 1){
+            //Update the accelerometer data
             updateAccBuffers();
             acc_input_flag = 0;
         }
