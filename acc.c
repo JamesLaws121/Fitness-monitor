@@ -197,48 +197,6 @@ char* getAcclUnitStr(int8_t unit_num){
 
 
 
-//===================================================================
-// Converts a given angle from milli radians to degrees
-//===================================================================
-orientation_t radiansToDegrees(orientation_t orientation){
-
-    orientation.roll = ((orientation.roll*57.3)/1000);
-    orientation.pitch = ((orientation.pitch*57.3)/1000);
-    return orientation;
-}
-
-
-
-//==================================================================
-// Returns the current orientation of the accelerometer in terms
-//  of pitch and roll in milliradians.
-//==================================================================
-orientation_t getOrientation(vector3_t accl_raw)
-{
-    orientation_t orientation;
-    float temp = 0;
-
-    // Calculate pitch angle
-    temp = (accl_raw.x*1000)/sqrt(pow(accl_raw.z,2)+pow(accl_raw.y,2));
-    temp /= 1000;
-    orientation.pitch = atan(temp)*-1000;
-
-    // Calculate roll angle
-    temp = (accl_raw.y*1000)/sqrt(pow(accl_raw.z,2)+pow(accl_raw.x,2));
-    temp /= 1000;
-    orientation.roll = atan(temp)*1000;
-
-    // Adjust roll angle if board is upside down
-    if (accl_raw.z < 0 && abs(orientation.pitch) < 90) {
-        if (accl_raw.y < 0) {
-            orientation.roll = -orientation.roll - 3141;
-        } else {
-            orientation.roll = -orientation.roll + 3141;
-        }
-    }
-    return radiansToDegrees(orientation);
-}
-
 //====================================================================================
 // getAverage: Returns the means of the acceleration data
 //====================================================================================

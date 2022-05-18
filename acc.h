@@ -20,11 +20,6 @@ typedef struct{
     int16_t z;
 } vector3_t;
 
-// Defines an orientation
-typedef struct{
-    int16_t roll;
-    int16_t pitch;
-} orientation_t;
 
 // *******************************************************
 // Buffer structure
@@ -99,8 +94,6 @@ vector3_t convert(vector3_t accl_raw, uint8_t unit);
 // Returns a string representing the unit
 char* getAcclUnitStr(int8_t unit_num);
 
-// Returns the current orientation of the accelerometer
-orientation_t getOrientation(vector3_t accl_raw);
 
 // Returns the mean of the data stored in the given buffer
 int32_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer);
