@@ -100,6 +100,11 @@ void initAccl (void)
     initCircBuf(&bufferZ, BUFF_SIZE);
     initCircBuf(&bufferX, BUFF_SIZE);
 
+    // Obtain initial set of accelerometer data
+    uint8_t i;
+    for(i = 0; i < 20; i++){
+       updateAccBuffers();
+    }
 }
 
 //======================================================

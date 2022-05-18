@@ -19,8 +19,6 @@
 #include "inc/hw_types.h"
 #include "inc/hw_ints.h"
 #include "inc/hw_i2c.h"
-
-
 #include "driverlib/pin_map.h"
 #include "driverlib/systick.h"
 #include "driverlib/sysctl.h"
@@ -28,14 +26,11 @@
 #include "driverlib/i2c.h"
 #include "../OrbitOLED/OrbitOLEDInterface.h"
 #include "utils/ustdlib.h"
-
 #include "inc/hw_ints.h"
 #include "driverlib/adc.h"
-
 #include "driverlib/debug.h"
-
 #include "utils/ustdlib.h"
-//#include "stdlib.h"
+
 
 #include "acc.h"
 #include "i2c_driver.h"
@@ -47,7 +42,7 @@
 
 
 //Step counting constants
-#define STEP_COOLDOWN 10
+#define STEP_COOLDOWN 15
 #define MAGNITUDE_SAMPLES 1000
 #define PEAK_THRESHOLD 4
 
@@ -132,7 +127,7 @@ void SysTickIntHandler(void)
 void checkBump(){
     static int threshold = PEAK_THRESHOLD; // threshold used for peak detection
 
-    IntMasterDisable(); // disable interupts while reading from buffer
+    IntMasterDisable(); // disable interrupts while reading from buffer
     vector3_t currentAverage = getAverage(); // gets the average x,y,z data
     IntMasterEnable();
 
@@ -184,7 +179,7 @@ int main()
 
     // Initialize required modules
     initAccl();
-    dislplayInit();
+    displayInit();
     OLEDInitialise();
     initButtons();
     initADC();
@@ -200,13 +195,6 @@ int main()
     SysTickIntEnable();
     SysTickEnable();
     IntMasterEnable();
-
-    // Obtain initial set of accelerometer data
-    uint8_t i;
-    for(i = 0; i < 20; i++){
-        updateAccBuffers();
-    }
-
 
 
     //=========================================================================================

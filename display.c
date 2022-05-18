@@ -7,15 +7,25 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/debug.h"
+#include "../OrbitOLED/OrbitOLEDInterface.h"
+#include "utils/ustdlib.h"
 
 #include "display.h"
 #include "buttons4.h"
 #include "ADC.h"
+
+
+
+
+
 
 //General constants
 #define STEP_DISTANCE 0.9
@@ -28,14 +38,18 @@
 //global variables
 uint8_t display_state ;
 bool skip_frame_flag;
-
+uint16_t distance;
 
 
 enum step_units{STEPS=0, PERCENT=1} step_unit;
-enum dist_units{KILOMETRES=0, MILES=1} dist_unit;
+
+enum dist_units{
+    KILOMETRES=0,
+    MILES=1
+} dist_unit;
 
 
-void dislplayInit(){
+void displayInit(){
     step_unit = STEPS;
     dist_unit = KILOMETRES;
     display_state = 0;
@@ -67,7 +81,7 @@ void lineUpdate(char *str1, uint16_t num, char *str2, uint8_t charLine)
 //====================================================================================
 // displayUpdate: Updates the OLED display.
 //====================================================================================
-void displayUpdate(int* step_count,int* step_goal)
+void displayUpdate(uint16_t* step_count,uint16_t* step_goal)
 {
     // If a state change has occurred, clear the display.
     static uint8_t prev_state = 0;
@@ -105,7 +119,7 @@ void displayUpdate(int* step_count,int* step_goal)
         //1: Display the current distance traveled
         OLEDStringDraw("Total Distance",0,0);
         OLEDStringDraw("                ", 0, 1);
-        uint16_t distance = ((*step_count)*STEP_DISTANCE);
+        distance = ((*step_count)*STEP_DISTANCE);
         char text_buffer[17]; //Display fits 16 characters wide.
 
         if (dist_unit == KILOMETRES) {
@@ -140,7 +154,7 @@ void displayUpdate(int* step_count,int* step_goal)
 //===================================================================================
 // processUserInput: takes some action based on some user input.
 //===================================================================================
-void processUserInput(int* step_count,int* step_goal)
+void processUserInput(uint16_t* step_count,uint16_t* step_goal)
 {
     //Inputs to check regardless of state and test mode
     // left and right buttons should move between different screens
@@ -187,7 +201,7 @@ void processUserInput(int* step_count,int* step_goal)
     case 0: //0: Displaying total steps
         //UP: Toggle units between absolute steps and percentage of goal
         if (checkButton(UP) == PUSHED) {
-            step_unit = !step_unit;
+            step_unit = (enum step_units)!step_unit;
         }
 
         //LONG DOWN: Reset step count
@@ -200,7 +214,7 @@ void processUserInput(int* step_count,int* step_goal)
     case 1: //1: Displaying total distance
         //UP: Toggle units between km and miles
         if (checkButton(UP) == PUSHED) {
-            dist_unit = !dist_unit;
+            dist_unit = (enum dist_units) !dist_unit;
         }
 
         //LONG DOWN: Reset step count

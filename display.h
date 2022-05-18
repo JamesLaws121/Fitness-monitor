@@ -11,9 +11,10 @@
 
 void lineUpdate(char *str1, uint16_t num, char *str2, uint8_t charLine);
 
-void displayUpdate(int* step_count,int* step_goal);
+void displayUpdate(uint16_t* step_count,uint16_t* step_goal);
 
-void processUserInput(int* step_count,int* step_goal);
+void processUserInput(uint16_t* step_count,uint16_t* step_goal);
 
+void displayInit();
 
 #endif /* DISPLAY_H_ */
