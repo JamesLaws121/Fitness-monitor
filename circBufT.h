@@ -5,10 +5,11 @@
 // 
 // circBufT.h
 //
-// Support for a circular buffer of uint32_t values on the 
+// Support for a circular buffer of int16_t values on the
 //  Tiva processor.
-// P.J. Bones UCECE
-// Last modified:  7.3.2017
+// P.J. Bones UCECE, D. Beukenholdt, J. Laws
+//
+// Last modified:  18 MAY 2022
 // 
 // *******************************************************
 #include <stdint.h>

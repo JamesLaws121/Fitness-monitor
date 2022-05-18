@@ -1,21 +1,24 @@
 #ifndef BUTTONS_H_
 #define BUTTONS_H_
 
-// *******************************************************
-// buttons.h
-//
-// Support for a set of FOUR specific buttons on the Tiva/Orbit.
-// ENCE361 sample code.
-// The buttons are:  UP and DOWN (on the Orbit daughterboard) plus
-// LEFT and RIGHT on the Tiva.
-//
-// P.J. Bones UCECE
-// *******************************************************
-// Modified by D. Beukenholdt and J. Laws
-// 
-// Last Modified 4/5/2022
-//
-// *******************************************************
+/*******************************************************
+ *
+ *  buttons4.h
+ *
+ * Support for a set of FOUR specific buttons on the Tiva/Orbit.
+ * ENCE361 sample code.
+ * The buttons are:  UP and DOWN (on the Orbit daughterboard) plus
+ * LEFT and RIGHT on the Tiva.
+ *
+ * P.J. Bones UCECE
+ ********************************************************
+ * Support added for switch (on the Orbit daughterboard)
+ *
+ * Modified by D. Beukenholdt and J. Laws
+ *
+ * Last Modified 4/5/2022
+ *
+ ********************************************************/
 
 #include <stdint.h>
 #include <stdbool.h>

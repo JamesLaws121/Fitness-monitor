@@ -1,24 +1,26 @@
 #ifndef ACC_H_
 #define ACC_H_
 
-/*========================================================
- acc.h
 
- Support for interfacing with the ADXL345 accelerometer
- on the Orbit BoosterPack.
-
- C.P. Moore, D. Beukenholdt, J. Laws
- Last modified:  17/03/2022
- ========================================================*/
+/***********************************************************
+ * acc.h
+ *
+ *  Support for interfacing with the ADXL345 accelerometer
+ *  on the Orbit BoosterPack.
+ *
+ * C.P. Moore, D. Beukenholdt, J. Laws
+ *
+ * Last modified: 18 May 2022
+ **********************************************************/
 
 // Defines a 3 space vector
-
 typedef struct{
     int16_t x;
     int16_t y;
     int16_t z;
 } vector3_t;
 
+// Defines an orientation
 typedef struct{
     int16_t roll;
     int16_t pitch;
@@ -97,14 +99,19 @@ vector3_t convert(vector3_t accl_raw, uint8_t unit);
 // Returns a string representing the unit
 char* getAcclUnitStr(int8_t unit_num);
 
+// Returns the current orientation of the accelerometer
 orientation_t getOrientation(vector3_t accl_raw);
 
+// Returns the mean of the data stored in the given buffer
 int32_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer);
 
+// Returns the means of the acceleration data
 vector3_t getAverage();
 
+// Places new acc data in buffers
 void updateAccBuffers();
 
+// Return true if a step has been taken
 bool checkBump();
 
 #endif /*ACC_H_*/

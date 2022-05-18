@@ -2,16 +2,18 @@
 // 
 // circBufT.c
 //
-// Support for a circular buffer of uint32_t values on the 
+// Support for a circular buffer of int16_t values on the
 //  Tiva processor.
-// P.J. Bones UCECE
-// Last modified:  8.3.2017
+// P.J. Bones UCECE, D. Beukenholdt, J. Laws
+//
+// Last modified:  18 MAY 2022
 // 
 // *******************************************************
 
 #include <stdint.h>
 #include "stdlib.h"
 #include "circBufT.h"
+
 
 // *******************************************************
 // initCircBuf: Initialise the circBuf instance. Reset both indices to
@@ -59,8 +61,7 @@ int16_t readCircBuf (circBuf_t *buffer)
 // freeCircBuf: Releases the memory allocated to the buffer data,
 // sets pointer to NULL and ohter fields to 0. The buffer can
 // re-initialised by another call to initCircBuf().
-void
-freeCircBuf (circBuf_t * buffer)
+void freeCircBuf (circBuf_t * buffer)
 {
     buffer->windex = 0;
     buffer->rindex = 0;

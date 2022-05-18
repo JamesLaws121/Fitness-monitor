@@ -1,7 +1,12 @@
-/*======================================================
- acc.c
- C.P. Moore, D. Beukenholdt, J. Laws
-========================================================*/
+
+
+/***********************************************************
+ * acc.c
+ *
+ * C.P. Moore, D. Beukenholdt, J. Laws
+ *
+ * Last modified: 18 May 2022
+ **********************************************************/
 
 
 #include <stdint.h>
@@ -13,23 +18,23 @@
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
 #include "inc/hw_i2c.h"
-#include "driverlib/pin_map.h" //Needed for pin configure
+#include "driverlib/pin_map.h"
 #include "driverlib/systick.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
 #include "driverlib/i2c.h"
 #include "../OrbitOLED/OrbitOLEDInterface.h"
 #include "utils/ustdlib.h"
+#include "driverlib/interrupt.h"
+
 #include "acc.h"
 #include "i2c_driver.h"
 #include "circBufT.h"
 
 
-/*======================================================
- Initializes accelerometer
- written by C.P. Moore
- https://learn.canterbury.ac.nz/pluginfile.php/4291802/mod_folder/content/0/Week_3_lab_code.zip
-========================================================*/
+
+
+//Global variables
 
 circBuf_t bufferZ;
 circBuf_t bufferX;
@@ -38,6 +43,9 @@ circBuf_t magnitude_buffer;
 uint8_t BUFF_SIZE = 6;
 
 
+//======================================================
+// initAccl: Initialises the ACC and associated buffers
+//======================================================
 void initAccl (void)
 {
     char    toAccl[] = {0, 0};  // parameter, value
@@ -116,7 +124,7 @@ void initAccl (void)
 }
 
 //======================================================
-// Function to read accelerometer
+// getAcclData: Function to read accelerometer
 //======================================================
 vector3_t getAcclData (void)
 {
@@ -231,6 +239,9 @@ orientation_t getOrientation(vector3_t accl_raw)
     return radiansToDegrees(orientation);
 }
 
+//====================================================================================
+// getAverage: Returns the means of the acceleration data
+//====================================================================================
 vector3_t getAverage(){
     // Take a new running average of acceleration
     vector3_t currentAverage;
@@ -242,7 +253,7 @@ vector3_t getAverage(){
 }
 
 //====================================================================================
-// averageData: returns the mean of the data stored in the given buffer
+// averageData: Returns the mean of the data stored in the given buffer
 //====================================================================================
 int32_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer){
     int32_t sum = 0;

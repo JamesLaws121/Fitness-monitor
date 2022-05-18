@@ -1,9 +1,11 @@
-/*
+/**************************************
  * display.h
  *
- *  Created on: May 18, 2022
- *      Author: Dell Latitude
- */
+ * Created on: May 18, 2022
+ *     Author: J.Laws, D. Beukenholdt
+ *
+ * Last modified: 18 May 2022
+ **************************************/
 
 #ifndef DISPLAY_H_
 #define DISPLAY_H_

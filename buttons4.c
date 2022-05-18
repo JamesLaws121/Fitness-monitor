@@ -1,25 +1,24 @@
-// *******************************************************
-// 
-// buttons4.c
-//
-// Support for a set of FOUR specific buttons on the Tiva/Orbit.
-// ENCE361 sample code.
-// The buttons are:  UP and DOWN (on the Orbit daughterboard) plus
-// LEFT and RIGHT on the Tiva.
-//
-// Note that pin PF0 (the pin for the RIGHT pushbutton - SW2 on
-//  the Tiva board) needs special treatment - See PhilsNotesOnTiva.rtf.
-//
-// P.J. Bones UCECE
-//
-//
-// *******************************************************
-// Support added for switch (on the Orbit daughterboard)
-// Modified by D. Beukenholdt and J. Laws
-// 
-// Last Modified 18/5/2022
-//
-// *******************************************************
+/*******************************************************
+ * buttons4.c
+ *
+ * Support for a set of FOUR specific buttons on the Tiva/Orbit.
+ * ENCE361 sample code.
+ * The buttons are:  UP and DOWN (on the Orbit daughterboard) plus
+ * LEFT and RIGHT on the Tiva.
+ *
+ * Note that pin PF0 (the pin for the RIGHT pushbutton - SW2 on
+ * the Tiva board) needs special treatment - See PhilsNotesOnTiva.rtf.
+ *
+ * P.J. Bones UCECE
+ *
+ *
+ * *******************************************************
+ * Support added for switch (on the Orbit daughterboard)
+ * Modified by D. Beukenholdt and J. Laws
+ *
+ * Last modified: 18 May 2022
+ *
+ ********************************************************/
 
 
 
@@ -182,16 +181,23 @@ void switchInit(){
     GPIOPadConfigSet(SW1_BUT_PORT_BASE, SW1_BUT_PIN, GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPD);
 }
 
+//====================================================================================
+// switchDown: True if switch SW1 down
+//====================================================================================
 bool switchDown(){
     return(GPIOPinRead (SW1_BUT_PORT_BASE, SW1_BUT_PIN) == SW1_BUT_PIN);
 }
-// *******************************************************
-// checkLongPush: Function returns true if the button has
-// been pushed for the last
-// LONG_PUSH calls, otherwise returns false.
-// The argument butName should be one of constants in the
-// enumeration butStates.
-// Passing 'NUM_BUTS' as argument will check all buttons.
+
+/*******************************************************
+ *
+ * checkLongPush
+ * Function returns true if the button has been pushed
+ * for the last LONG_PUSH calls, otherwise returns false.
+ * The argument butName should be one of constants in the
+ * enumeration butStates.
+ * Passing 'NUM_BUTS' as argument will check all buttons.
+ *
+ *******************************************************/
 bool checkLongPush(uint8_t butName)
 {
     if (butName == NUM_BUTS){
