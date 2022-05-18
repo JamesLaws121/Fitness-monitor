@@ -34,7 +34,8 @@
 circBuf_t bufferZ;
 circBuf_t bufferX;
 circBuf_t bufferY;
-uint8_t BUFF_SIZE = 20;
+circBuf_t magnitude_buffer;
+uint8_t BUFF_SIZE = 6;
 
 
 void initAccl (void)
@@ -99,11 +100,18 @@ void initAccl (void)
     initCircBuf(&bufferY, BUFF_SIZE);
     initCircBuf(&bufferZ, BUFF_SIZE);
     initCircBuf(&bufferX, BUFF_SIZE);
+    initCircBuf(&magnitude_buffer, MAGNITUDE_SAMPLES);
 
     // Obtain initial set of accelerometer data
     uint8_t i;
     for(i = 0; i < 20; i++){
        updateAccBuffers();
+    }
+
+    for(i = 0; i < MAGNITUDE_SAMPLES; i++){
+        vector3_t accl = getAcclData();
+        writeCircBuf(&magnitude_buffer, sqrt((accl.x*accl.x + accl.y*accl.y
+                + accl.z*accl.z)));
     }
 }
 
@@ -269,42 +277,34 @@ void updateAccBuffers(){
 // checkBump: detects spikes in acceleration data
 //====================================================================================
 bool checkBump(){
-    static int16_t step_cooldown = 20;
-    static uint16_t magnitude_sum;
+    static uint8_t step_cooldown = STEP_COOLDOWN;
     static uint16_t average_magnitude;
-    static uint8_t averages_counted = 1;
-
-
-    static int threshold = PEAK_THRESHOLD; // threshold used for peak detection
+    static bool prev_over_threshold = false;
+    static bool over_threshold = false;
 
     IntMasterDisable(); // disable interrupts while reading from buffer
     vector3_t currentAverage = getAverage(); // gets the average x,y,z data
     IntMasterEnable();
 
+    // Current magnitude
     uint16_t magnitude = sqrt((currentAverage.x*currentAverage.x + currentAverage.y*currentAverage.y
-            + currentAverage.z*currentAverage.z));  // Current magnitude
+            + currentAverage.z*currentAverage.z));
 
+    // use a moving average as a baseline for detecting acceleration spikes
+    writeCircBuf(&magnitude_buffer, magnitude);
+    average_magnitude = averageData(MAGNITUDE_SAMPLES, &magnitude_buffer);
 
-    int16_t diffMagnitude = (magnitude-average_magnitude); //difference between current magnitude and average magnitude
+    //difference between current acceleration and moving average
+    int16_t diffMagnitude = magnitude-average_magnitude;
 
-    // uses a moving average to find peaks
-    if(averages_counted == 1){
-        magnitude_sum = magnitude; //First sample
-        averages_counted++;
-        diffMagnitude = 0;
-    } else {
-        magnitude_sum += magnitude;
-        average_magnitude = (magnitude_sum/averages_counted);
-        averages_counted++;
-    }
+    // check if the diffMagnitude is greater then the threshold
+    prev_over_threshold = over_threshold;
+    over_threshold = (diffMagnitude > PEAK_THRESHOLD);
 
-    if(averages_counted >= MAGNITUDE_SAMPLES && step_cooldown == STEP_COOLDOWN){
-            // Restarts  average during step cool down to avoid missing steps
-        averages_counted = 1;
-    }
+    if(step_cooldown != 0) {step_cooldown--;}
 
-    step_cooldown--;
-    if(diffMagnitude > threshold && step_cooldown <= 0){
+    // Only register a step on the rising edge of the over_threshold variable
+    if(over_threshold == 1 && prev_over_threshold == 0 && step_cooldown == 0){
         step_cooldown = STEP_COOLDOWN;
         return true;
     } else {

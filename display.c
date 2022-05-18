@@ -24,9 +24,6 @@
 
 
 
-
-
-
 //General constants
 #define STEP_DISTANCE 0.9
 
@@ -113,6 +110,7 @@ void displayUpdate(uint16_t* step_count,uint16_t* step_goal)
             uint8_t step_percent = ((*step_count) * 100) / (*step_goal);
             lineUpdate("", step_percent, "%", 1);
         }
+
         break;
 
     case 1:

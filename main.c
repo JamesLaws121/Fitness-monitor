@@ -42,11 +42,11 @@
 
 
 //Interrupt constants
-#define SYSTICK_RATE_HZ 30
-#define DISPLAY_UPDATE_HZ 4
+#define SYSTICK_RATE_HZ 40
+#define DISPLAY_UPDATE_HZ 5
 #define USER_INPUT_RATE_HZ 10
-#define STEP_INPUT_RATE_HZ 6
-#define ACC_UPDATE_HZ 15
+#define STEP_INPUT_RATE_HZ 8
+#define ACC_UPDATE_HZ 20
 
 
 
@@ -81,8 +81,8 @@ void SysTickIntHandler(void)
 {
     static uint8_t user_input_delay = (SYSTICK_RATE_HZ / USER_INPUT_RATE_HZ);
     static uint8_t display_update_delay = SYSTICK_RATE_HZ / DISPLAY_UPDATE_HZ + 1; //+1 offset to prevent display update and user input being called in the same tick
-    static uint8_t step_update_delay = (SYSTICK_RATE_HZ / STEP_INPUT_RATE_HZ);
-    static uint8_t acc_update_delay = SYSTICK_RATE_HZ / ACC_UPDATE_HZ;
+    static uint8_t acc_update_delay = SYSTICK_RATE_HZ / ACC_UPDATE_HZ + 2;
+    static uint8_t step_update_delay = (SYSTICK_RATE_HZ / STEP_INPUT_RATE_HZ) + 4;
 
     // Trigger an ADC conversion for potentiometer
     ADCProcessorTrigger(ADC0_BASE, 3);

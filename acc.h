@@ -80,9 +80,9 @@ typedef struct{
 
 
 //Parameters for checkBump()
-#define STEP_COOLDOWN 10
-#define MAGNITUDE_SAMPLES 1000
-#define PEAK_THRESHOLD 5
+#define STEP_COOLDOWN 3
+#define MAGNITUDE_SAMPLES 200
+#define PEAK_THRESHOLD 20
 
 
 // Initialization function for accelerometer
