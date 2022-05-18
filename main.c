@@ -75,8 +75,8 @@ bool acc_input_flag = 0;
 void SysTickIntHandler(void)
 {
     static uint8_t user_input_delay = (SYSTICK_RATE_HZ / USER_INPUT_RATE_HZ);
-    static uint8_t display_update_delay = SYSTICK_RATE_HZ / DISPLAY_UPDATE_HZ + 1; //+1 offset to prevent display update and user input being called in the same tick
-    static uint8_t acc_update_delay = SYSTICK_RATE_HZ / ACC_UPDATE_HZ + 2;
+    static uint8_t display_update_delay = (SYSTICK_RATE_HZ / DISPLAY_UPDATE_HZ) + 1; //+1 offset to prevent display update and user input being called in the same tick
+    static uint8_t acc_update_delay = (SYSTICK_RATE_HZ / ACC_UPDATE_HZ) + 2;
     static uint8_t step_update_delay = (SYSTICK_RATE_HZ / STEP_INPUT_RATE_HZ) + 4;
 
     // Trigger an ADC conversion for potentiometer
