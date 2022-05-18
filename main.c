@@ -123,7 +123,7 @@ int main()
 
     // Initial values for variables
     step_count = 0;
-    step_goal = 0;
+    step_goal = 1000;
 
 
     // Initialize system clock

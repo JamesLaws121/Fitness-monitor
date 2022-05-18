@@ -111,6 +111,12 @@ void displayUpdate(uint16_t* step_count,uint16_t* step_goal)
             lineUpdate("", step_percent, "%", 1);
         }
 
+        if (*step_count >= *step_goal) {
+            OLEDStringDraw("Goal Complete!",0,3);
+        } else {
+            OLEDStringDraw("                ", 0,3);
+        }
+
         break;
 
     case 1:
@@ -127,6 +133,12 @@ void displayUpdate(uint16_t* step_count,uint16_t* step_goal)
         else if (dist_unit == MILES) {
             usnprintf(text_buffer, sizeof(text_buffer), " %d.%d miles", (distance/1609), (((distance*1000)/1609) % 1000)/10);
             OLEDStringDraw(text_buffer, 0, 1);
+        }
+
+        if (*step_count >= *step_goal) {
+            OLEDStringDraw("Goal Complete!",0,3);
+        } else {
+            OLEDStringDraw("                ", 0,3);
         }
         break;
 
