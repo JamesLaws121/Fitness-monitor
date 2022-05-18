@@ -1,7 +1,6 @@
 /**************************************
  * ADC.c
  *
- *
  * P.J. Bones   UCECE, D. Beukenholdt, J. Laws
  *
  * Last modified: 18 May 2022
