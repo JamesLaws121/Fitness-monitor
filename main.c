@@ -42,9 +42,9 @@
 
 
 //Step counting constants
-#define STEP_COOLDOWN 15
+#define STEP_COOLDOWN 10
 #define MAGNITUDE_SAMPLES 1000
-#define PEAK_THRESHOLD 4
+#define PEAK_THRESHOLD 5
 
 //Interrupt constants
 #define SYSTICK_RATE_HZ 30
@@ -63,7 +63,7 @@
 //Define global variables
 uint16_t step_count;
 uint16_t step_goal;
-int16_t step_cooldown = 0;
+int16_t step_cooldown = 20;
 uint16_t magnitude_sum;
 uint16_t average_magnitude;
 uint8_t averages_counted = 1;
