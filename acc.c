@@ -265,4 +265,50 @@ void updateAccBuffers(){
 }
 
 
+//====================================================================================
+// checkBump: detects spikes in acceleration data
+//====================================================================================
+bool checkBump(){
+    static int16_t step_cooldown = 20;
+    static uint16_t magnitude_sum;
+    static uint16_t average_magnitude;
+    static uint8_t averages_counted = 1;
+
+
+    static int threshold = PEAK_THRESHOLD; // threshold used for peak detection
+
+    IntMasterDisable(); // disable interrupts while reading from buffer
+    vector3_t currentAverage = getAverage(); // gets the average x,y,z data
+    IntMasterEnable();
+
+    uint16_t magnitude = sqrt((currentAverage.x*currentAverage.x + currentAverage.y*currentAverage.y
+            + currentAverage.z*currentAverage.z));  // Current magnitude
+
+
+    int16_t diffMagnitude = (magnitude-average_magnitude); //difference between current magnitude and average magnitude
+
+    // uses a moving average to find peaks
+    if(averages_counted == 1){
+        magnitude_sum = magnitude; //First sample
+        averages_counted++;
+        diffMagnitude = 0;
+    } else {
+        magnitude_sum += magnitude;
+        average_magnitude = (magnitude_sum/averages_counted);
+        averages_counted++;
+    }
+
+    if(averages_counted >= MAGNITUDE_SAMPLES && step_cooldown == STEP_COOLDOWN){
+            // Restarts  average during step cool down to avoid missing steps
+        averages_counted = 1;
+    }
+
+    step_cooldown--;
+    if(diffMagnitude > threshold && step_cooldown <= 0){
+        step_cooldown = STEP_COOLDOWN;
+        return true;
+    } else {
+        return false;
+    }
+}
 

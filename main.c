@@ -41,11 +41,6 @@
 
 
 
-//Step counting constants
-#define STEP_COOLDOWN 10
-#define MAGNITUDE_SAMPLES 1000
-#define PEAK_THRESHOLD 5
-
 //Interrupt constants
 #define SYSTICK_RATE_HZ 30
 #define DISPLAY_UPDATE_HZ 4
@@ -121,44 +116,6 @@ void SysTickIntHandler(void)
 
 }
 
-//====================================================================================
-// step detection
-//====================================================================================
-void checkBump(){
-    static int threshold = PEAK_THRESHOLD; // threshold used for peak detection
-
-    IntMasterDisable(); // disable interrupts while reading from buffer
-    vector3_t currentAverage = getAverage(); // gets the average x,y,z data
-    IntMasterEnable();
-
-    uint16_t magnitude = sqrt((currentAverage.x*currentAverage.x + currentAverage.y*currentAverage.y
-            + currentAverage.z*currentAverage.z));  // Current magnitude
-
-
-    int16_t diffMagnitude = (magnitude-average_magnitude); //difference between current magnitude and average magnitude
-
-    // uses a moving average to find peaks
-    if(averages_counted == 1){
-        magnitude_sum = magnitude; //First sample
-        averages_counted++;
-        diffMagnitude = 0;
-    } else {
-        magnitude_sum += magnitude;
-        average_magnitude = (magnitude_sum/averages_counted);
-        averages_counted++;
-    }
-
-    if(averages_counted >= MAGNITUDE_SAMPLES && step_cooldown == STEP_COOLDOWN){
-            // Restarts  average during step cool down to avoid missing steps
-        averages_counted = 1;
-    }
-
-    step_cooldown--;
-    if(diffMagnitude > threshold && step_cooldown <= 0){
-        step_count++;
-        step_cooldown = STEP_COOLDOWN;
-    }
-}
 
 
 
@@ -217,9 +174,12 @@ int main()
         }
 
         if(step_update_flag == 1){
-            checkBump();
+            if(checkBump()) {
+                step_count++;
+            }
             step_update_flag = 0;
         }
+
         if(acc_input_flag == 1){
             updateAccBuffers();
             acc_input_flag = 0;

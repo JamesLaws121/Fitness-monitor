@@ -79,6 +79,12 @@ typedef struct{
 #define ACCL_RATE_0_10HZ    0x00
 
 
+//Parameters for checkBump()
+#define STEP_COOLDOWN 10
+#define MAGNITUDE_SAMPLES 1000
+#define PEAK_THRESHOLD 5
+
+
 // Initialization function for accelerometer
 void initAccl(void);
 
@@ -98,5 +104,7 @@ int32_t averageData(uint8_t BUFF_SIZE,circBuf_t* buffer);
 vector3_t getAverage();
 
 void updateAccBuffers();
+
+bool checkBump();
 
 #endif /*ACC_H_*/
