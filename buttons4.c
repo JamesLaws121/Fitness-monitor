@@ -1,6 +1,6 @@
 // *******************************************************
 // 
-// buttons.c
+// buttons4.c
 //
 // Support for a set of FOUR specific buttons on the Tiva/Orbit.
 // ENCE361 sample code.
@@ -12,10 +12,12 @@
 //
 // P.J. Bones UCECE
 //
+//
 // *******************************************************
+// Support added for switch (on the Orbit daughterboard)
 // Modified by D. Beukenholdt and J. Laws
 // 
-// Last Modified 4/5/2022
+// Last Modified 18/5/2022
 //
 // *******************************************************
 
@@ -32,6 +34,10 @@
 
 #include "buttons4.h"
 
+
+
+
+
 // *******************************************************
 // Globals to module
 // *******************************************************
@@ -42,11 +48,14 @@ static bool but_flag[NUM_BUTS];
 static bool but_flag_long[NUM_BUTS];
 static bool but_normal[NUM_BUTS];   // Corresponds to the electrical state
 
+
+
+
+
 // *******************************************************
 // initButtons: Initialise the variables associated with the set of buttons
 // defined by the constants in the buttons2.h header file.
-void
-initButtons (void)
+void initButtons (void)
 {
 	int i;
 
@@ -101,8 +110,7 @@ initButtons (void)
 // A state change occurs only after NUM_BUT_POLLS consecutive polls have
 // read the pin in the opposite condition, before the state changes and
 // a flag is set.  Set NUM_BUT_POLLS according to the polling rate.
-void
-updateButtons (void)
+void updateButtons (void)
 {
 	bool but_value[NUM_BUTS];
 	int i;
@@ -152,8 +160,7 @@ updateButtons (void)
 // checkButton: Function returns the new button logical state if the button
 // logical state (PUSHED or RELEASED) has changed since the last call,
 // otherwise returns NO_CHANGE.
-uint8_t
-checkButton (uint8_t butName)
+uint8_t checkButton (uint8_t butName)
 {
 	if (but_flag[butName])
 	{
@@ -166,8 +173,18 @@ checkButton (uint8_t butName)
 	return NO_CHANGE;
 }
 
+//====================================================================================
+// switchInit: Initializes the debug switch
+//====================================================================================
+void switchInit(){
+    SysCtlPeripheralEnable(SW1_BUT_PERIPH);
+    GPIOPinTypeGPIOInput(SW1_BUT_PORT_BASE, SW1_BUT_PIN);
+    GPIOPadConfigSet(SW1_BUT_PORT_BASE, SW1_BUT_PIN, GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPD);
+}
 
-
+bool switchDown(){
+    return(GPIOPinRead (SW1_BUT_PORT_BASE, SW1_BUT_PIN) == SW1_BUT_PIN);
+}
 // *******************************************************
 // checkLongPush: Function returns true if the button has
 // been pushed for the last
